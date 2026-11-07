@@ -1,5 +1,5 @@
 import React from 'react';
-import { Check, Sparkles, Palette, ArrowRight } from 'lucide-react';
+import { Check, Sparkles, Palette, ArrowRight, ShieldCheck, Flame } from 'lucide-react';
 
 interface ThemeStudioPageProps {
   currentTheme: string;
@@ -10,7 +10,9 @@ interface ThemeStudioPageProps {
 interface ThemeOption {
   id: string;
   name: string;
+  edition: string;
   tagline: string;
+  description: string;
   isFlagship?: boolean;
   colors: {
     bg: string;
@@ -18,95 +20,41 @@ interface ThemeOption {
     text: string;
     accent: string;
     secondary: string;
+    amber: string;
   };
 }
 
 const THEMES: ThemeOption[] = [
   {
+    id: 'luxury_main',
+    name: 'Muffinns Luxury Atelier 👑',
+    edition: 'World-Class Main Theme',
+    tagline: 'Pure White canvas with Dark Chocolate, Deep Espresso, Burnt Orange accents & Warm Amber glow.',
+    description: 'Designed in the visual language of high-end French patisseries. Architectural whitespace, deep chocolate typography, burnt orange callouts, and bespoke 3D confectionery showcase.',
+    isFlagship: true,
+    colors: {
+      bg: '#FFFFFF',
+      card: '#FCFAF8',
+      text: '#32140D',
+      accent: '#E94F16',
+      secondary: '#21100B',
+      amber: '#F4B34D'
+    }
+  },
+  {
     id: 'muffin_galaxy',
     name: 'Muffin Galaxy 🪐',
+    edition: 'Cosmic Night Edition',
     tagline: 'Deep space purple cosmic canvas with muffin-orange glow and golden stardust crumble accents.',
-    isFlagship: true,
+    description: 'An immersive celestial voyage into dark cosmic violet, illuminated with warm stardust orange glazes, nebula gradients, and floating asteroid particles.',
+    isFlagship: false,
     colors: {
       bg: '#1A1423',
       card: '#2A1B3D',
       text: '#FFF8F0',
       accent: '#F4A261',
-      secondary: '#E9C46A'
-    }
-  },
-  {
-    id: 'classic',
-    name: 'Classic Honey',
-    tagline: 'Warm cream, honey amber, and rich espresso. The signature Muffinns editorial identity.',
-    isFlagship: true,
-    colors: {
-      bg: '#F7F0E5',
-      card: '#FCFAF6',
-      text: '#291812',
-      accent: '#D99A38',
-      secondary: '#60402F'
-    }
-  },
-  {
-    id: 'espresso',
-    name: 'Midnight Espresso',
-    tagline: 'Deep dark roasted cocoa canvas with warm caramel drizzle and milky foam highlights.',
-    isFlagship: true,
-    colors: {
-      bg: '#14110F',
-      card: '#1E1916',
-      text: '#FAF0E6',
-      accent: '#D99A38',
-      secondary: '#E9B96B'
-    }
-  },
-  {
-    id: 'velvet',
-    name: 'Royal Velvet',
-    tagline: 'Deep plum, rich berry cocoa, and subtle rose-gold accents for celebratory evenings.',
-    colors: {
-      bg: '#FCF4F6',
-      card: '#FFF9FA',
-      text: '#400B1A',
-      accent: '#801832',
-      secondary: '#DCAE9E'
-    }
-  },
-  {
-    id: 'pistachio',
-    name: 'Forest Sage & Pistachio',
-    tagline: 'Herbal botanic sage, cream pistachio green, and dark forest mocha chocolate.',
-    colors: {
-      bg: '#F1F6F0',
-      card: '#FAFCFA',
-      text: '#12301A',
-      accent: '#2D5F39',
-      secondary: '#94C475'
-    }
-  },
-  {
-    id: 'cozy_brown',
-    name: 'Roasted Hazelnut',
-    tagline: 'Earthy toasted hazelnut, warm cinnamon, and creamy milk chocolate warmth.',
-    colors: {
-      bg: '#F4ECE1',
-      card: '#FAF5EE',
-      text: '#2E1A0F',
-      accent: '#6B3E26',
-      secondary: '#B87333'
-    }
-  },
-  {
-    id: 'sprinkle_noir',
-    name: 'Sprinkle Noir',
-    tagline: 'Ultra-dark luxury midnight blue canvas infused with 24k golden speckles.',
-    colors: {
-      bg: '#141423',
-      card: '#1A1A2E',
-      text: '#F5F5F7',
-      accent: '#EAB543',
-      secondary: '#C4C4C4'
+      secondary: '#E76F51',
+      amber: '#E9C46A'
     }
   }
 ];
@@ -133,93 +81,118 @@ export default function ThemeStudioPage({
           </h1>
 
           <p className="text-sm sm:text-base text-brand-chocolate/75 leading-relaxed font-sans">
-            Customize the bakery storefront to match your ambient mood. Explore our flagship <strong>Classic Honey</strong> or immerse yourself in dark luxury with <strong>Midnight Espresso</strong>.
+            Choose between our world-class <strong>Luxury Atelier</strong> (Pure White, Dark Chocolate, Burnt Orange & Warm Amber) or immerse yourself in our starry <strong>Muffin Galaxy</strong>.
           </p>
         </div>
 
-        {/* Theme Swatch Grid */}
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6 sm:gap-8">
+        {/* Theme Swatch Grid - Strictly the 2 selected themes */}
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
           {THEMES.map((th) => {
             const isSelected = currentTheme === th.id;
             return (
               <div
                 key={th.id}
                 onClick={() => onSelectTheme(th.id)}
-                className={`p-6 sm:p-8 rounded-xs border transition-all cursor-pointer relative overflow-hidden flex flex-col justify-between ${
+                className={`p-6 sm:p-8 rounded-2xl border-2 transition-all cursor-pointer relative overflow-hidden flex flex-col justify-between space-y-6 ${
                   isSelected
-                    ? 'border-brand-chocolate shadow-md bg-brand-sugar ring-1 ring-brand-chocolate/20'
+                    ? 'border-[#E94F16] shadow-xl bg-brand-sugar ring-2 ring-[#E94F16]/20'
                     : 'border-brand-caramel/15 bg-brand-sugar/80 hover:bg-brand-sugar hover:border-brand-caramel/40'
                 }`}
               >
                 {/* Active Checkmark Pill */}
                 {isSelected && (
-                  <div className="absolute top-4 right-4 flex items-center gap-1.5 px-2.5 py-1 bg-brand-chocolate text-brand-cream text-[11px] uppercase tracking-wider font-semibold rounded-xs">
+                  <div className="absolute top-4 right-4 flex items-center gap-1.5 px-3 py-1 bg-[#E94F16] text-white text-[11px] uppercase tracking-wider font-bold rounded-full shadow-xs">
                     <Check className="w-3.5 h-3.5" />
-                    <span>Active Theme</span>
+                    <span>Active Edition</span>
                   </div>
                 )}
 
-                <div className="space-y-4">
-                  {th.isFlagship && (
-                    <span className="text-[10px] uppercase tracking-[0.2em] font-bold text-brand-caramel">
-                      Flagship Direction
-                    </span>
-                  )}
+                <div className="space-y-3">
+                  <div className="flex items-center gap-2.5">
+                    <span 
+                      className="w-4 h-4 rounded-full border border-black/15 shrink-0" 
+                      style={{ backgroundColor: th.colors.accent }} 
+                    />
+                    <div>
+                      <span className="text-[10px] uppercase tracking-widest font-mono text-brand-honey font-bold block">
+                        {th.edition}
+                      </span>
+                      <h3 className="font-serif text-2xl text-brand-chocolate font-bold">
+                        {th.name}
+                      </h3>
+                    </div>
+                  </div>
 
-                  <h3 className="font-serif text-2xl text-brand-chocolate font-normal">
-                    {th.name}
-                  </h3>
-
-                  <p className="text-xs sm:text-sm text-brand-chocolate/75 leading-relaxed">
+                  <p className="text-xs sm:text-sm text-brand-chocolate/80 leading-relaxed font-sans">
                     {th.tagline}
+                  </p>
+
+                  <p className="text-xs text-brand-chocolate/65 leading-relaxed pt-1">
+                    {th.description}
                   </p>
                 </div>
 
-                {/* Color Swatch Bar */}
-                <div className="pt-6 border-t border-brand-caramel/10 mt-6 space-y-2">
-                  <span className="text-[10px] uppercase tracking-widest font-mono text-brand-chocolate/50 block">
-                    Palette Breakdown
+                {/* Color Palette Palette Visualization Bar */}
+                <div className="space-y-3 pt-4 border-t border-brand-caramel/15">
+                  <span className="text-[10px] uppercase tracking-wider font-mono text-brand-chocolate/60 block">
+                    Palette Swatches:
                   </span>
-                  <div className="flex items-center gap-2">
-                    <div
-                      className="w-8 h-8 rounded-xs border border-black/10 shadow-inner"
-                      style={{ backgroundColor: th.colors.bg }}
-                      title={`Canvas: ${th.colors.bg}`}
-                    />
-                    <div
-                      className="w-8 h-8 rounded-xs border border-black/10 shadow-inner"
-                      style={{ backgroundColor: th.colors.card }}
-                      title={`Surface: ${th.colors.card}`}
-                    />
-                    <div
-                      className="w-8 h-8 rounded-xs border border-black/10 shadow-inner"
-                      style={{ backgroundColor: th.colors.text }}
-                      title={`Primary Text: ${th.colors.text}`}
-                    />
-                    <div
-                      className="w-8 h-8 rounded-xs border border-black/10 shadow-inner"
-                      style={{ backgroundColor: th.colors.accent }}
-                      title={`Accent: ${th.colors.accent}`}
-                    />
-                    <div
-                      className="w-8 h-8 rounded-xs border border-black/10 shadow-inner"
-                      style={{ backgroundColor: th.colors.secondary }}
-                      title={`Secondary: ${th.colors.secondary}`}
-                    />
+                  <div className="grid grid-cols-6 gap-2">
+                    <div className="text-center space-y-1">
+                      <div className="h-8 rounded-lg border border-black/10 shadow-xs" style={{ backgroundColor: th.colors.bg }} />
+                      <span className="text-[9px] font-mono text-brand-chocolate/70">Canvas</span>
+                    </div>
+                    <div className="text-center space-y-1">
+                      <div className="h-8 rounded-lg border border-black/10 shadow-xs" style={{ backgroundColor: th.colors.card }} />
+                      <span className="text-[9px] font-mono text-brand-chocolate/70">Card</span>
+                    </div>
+                    <div className="text-center space-y-1">
+                      <div className="h-8 rounded-lg border border-black/10 shadow-xs" style={{ backgroundColor: th.colors.text }} />
+                      <span className="text-[9px] font-mono text-brand-chocolate/70">Type</span>
+                    </div>
+                    <div className="text-center space-y-1">
+                      <div className="h-8 rounded-lg border border-black/10 shadow-xs" style={{ backgroundColor: th.colors.accent }} />
+                      <span className="text-[9px] font-mono text-brand-chocolate/70">Accent</span>
+                    </div>
+                    <div className="text-center space-y-1">
+                      <div className="h-8 rounded-lg border border-black/10 shadow-xs" style={{ backgroundColor: th.colors.secondary }} />
+                      <span className="text-[9px] font-mono text-brand-chocolate/70">Dark</span>
+                    </div>
+                    <div className="text-center space-y-1">
+                      <div className="h-8 rounded-lg border border-black/10 shadow-xs" style={{ backgroundColor: th.colors.amber }} />
+                      <span className="text-[9px] font-mono text-brand-chocolate/70">Amber</span>
+                    </div>
                   </div>
                 </div>
+
+                {/* Action CTA */}
+                <button
+                  type="button"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    onSelectTheme(th.id);
+                  }}
+                  className={`w-full py-3 rounded-xl text-xs font-bold uppercase tracking-wider flex items-center justify-center gap-2 cursor-pointer transition-colors ${
+                    isSelected
+                      ? 'bg-brand-chocolate text-brand-cream'
+                      : 'bg-brand-caramel/15 hover:bg-brand-caramel hover:text-white text-brand-chocolate'
+                  }`}
+                >
+                  {isSelected ? 'Currently Applied' : 'Activate Theme'}
+                  <ArrowRight className="w-3.5 h-3.5" />
+                </button>
               </div>
             );
           })}
         </div>
 
-        {/* Back to Home CTA */}
-        <div className="pt-4 flex justify-center">
+        {/* Back to Home Button */}
+        <div className="flex justify-center pt-8">
           <button
             onClick={onNavigateHome}
-            className="inline-flex items-center gap-2 px-6 py-3.5 bg-brand-chocolate text-brand-cream hover:bg-brand-caramel transition-colors font-sans text-xs uppercase tracking-widest font-semibold rounded-xs shadow-xs cursor-pointer"
+            className="inline-flex items-center gap-2 px-8 py-3.5 rounded-full bg-brand-chocolate text-brand-cream text-xs uppercase tracking-widest font-bold hover:bg-black transition-colors cursor-pointer shadow-md"
           >
-            <span>Return to Storefront</span>
+            <span>Return to Bakery Storefront</span>
             <ArrowRight className="w-4 h-4" />
           </button>
         </div>

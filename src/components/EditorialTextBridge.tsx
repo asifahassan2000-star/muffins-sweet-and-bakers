@@ -16,6 +16,16 @@ export default function EditorialTextBridge({ onNavigate }: EditorialTextBridgeP
       {/* Subtle background ambient grain / glow */}
       <div className="pointer-events-none absolute inset-0 bg-radial from-brand-caramel/10 via-transparent to-transparent opacity-70" />
 
+      {/* Giant Text Behind Editorial Watermark */}
+      <div 
+        className="absolute inset-0 flex items-center justify-center pointer-events-none -z-10 select-none overflow-hidden" 
+        aria-hidden="true"
+      >
+        <span className="font-serif text-[18vw] font-black tracking-tighter text-[#32140D]/[0.025] uppercase">
+          HERITAGE
+        </span>
+      </div>
+
       <div className="relative max-w-5xl mx-auto space-y-12 sm:space-y-16 text-center">
         
         {/* Kicker Tag */}
@@ -30,6 +40,13 @@ export default function EditorialTextBridge({ onNavigate }: EditorialTextBridgeP
         <h2 className="font-serif text-3xl sm:text-5xl md:text-6xl font-black leading-[1.08] tracking-tight text-brand-chocolate max-w-4xl mx-auto">
           We begin before dawn so the city awakens to the aroma of pure butter, golden honey, and warm ovens.
         </h2>
+
+        {/* Handwritten Master Baker Annotation */}
+        <div className="flex items-center justify-center gap-2 -mt-4">
+          <span className="font-handwriting text-2xl sm:text-3xl text-[#FF792B] font-bold tracking-wide -rotate-1">
+            ~ "Hand-whipped with wild honey & freshly crushed green cardamom" ~
+          </span>
+        </div>
 
         {/* Heartfelt Story Narrative Paragraph */}
         <div className="max-w-3xl mx-auto space-y-6 text-base sm:text-lg md:text-xl text-brand-chocolate/85 leading-relaxed font-sans font-normal">

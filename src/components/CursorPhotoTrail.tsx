@@ -12,51 +12,27 @@ interface TrailItem {
 }
 
 interface CursorPhotoTrailProps {
-  theme?: 'classic' | 'velvet' | 'pistachio' | 'espresso' | 'golden_sprinkle' | 'cozy_brown' | 'muffin_galaxy' | 'muffin_oasis' | 'muffin_party' | 'midnight_muffins' | 'sprinkle_noir' | string;
+  theme?: 'luxury_main' | 'muffin_galaxy' | string;
 }
 
 const getThemePalette = (theme: string) => {
   switch (theme) {
-    case 'velvet':
+    case 'muffin_galaxy':
       return {
-        primary: '#801832',     // Plum
-        secondary: '#DCAE9E',   // Rose Gold
-        accent: '#C07B88',      // Soft Berry Pink
-        sparkle: '#FF9EAE',     // Sweet Rose Sparkle
-        name: 'Royal Velvet 🍇'
+        primary: '#F4A261',     // Muffin Orange
+        secondary: '#E76F51',   // Popcorn Red
+        accent: '#E9C46A',      // Stardust Gold
+        sparkle: '#FFB703',     // Nebula Glow
+        name: 'Muffin Galaxy 🪐'
       };
-    case 'pistachio':
-      return {
-        primary: '#2D5F39',     // Forest Sage
-        secondary: '#94C475',   // Pistachio Mint
-        accent: '#73AA43',      // Lime Matcha
-        sparkle: '#A7F3D0',     // Green Mint Sparkle
-        name: 'Pistachio Mint 🍃'
-      };
-    case 'espresso':
-      return {
-        primary: '#2B231F',     // Espresso Dark Cocoa
-        secondary: '#DDA15E',   // Warm Caramel Macchiato
-        accent: '#E6CCB2',      // Milky Cream Foam
-        sparkle: '#FDE68A',     // Golden Latte Sparkle
-        name: 'Midnight Espresso ☕'
-      };
-    case 'golden_sprinkle':
-      return {
-        primary: '#FF3E6C',     // Vivid Ruby Pink
-        secondary: '#D4AF37',   // Glitter Gold
-        accent: '#00F0FF',      // Electric Cyan
-        sparkle: '#39FF14',     // Neon Lime Green
-        name: 'Golden Sprinkle ✨'
-      };
-    case 'classic':
+    case 'luxury_main':
     default:
       return {
-        primary: '#801832',     // Royal Plum accent
-        secondary: '#DCAE9E',   // Rose Gold / Honey
-        accent: '#801832',      // Classic accent
-        sparkle: '#FCD34D',     // Golden Honey Sparkle
-        name: 'Classic Honey 🍯'
+        primary: '#E94F16',     // Burnt Orange
+        secondary: '#FF792B',   // Tangerine
+        accent: '#F4B34D',      // Warm Amber
+        sparkle: '#32140D',     // Dark Chocolate drop
+        name: 'Luxury Atelier 👑'
       };
   }
 };
@@ -267,7 +243,7 @@ export default function CursorPhotoTrail({ theme = 'classic' }: CursorPhotoTrail
               {renderSweetVector(item.type, colors)}
               
               {/* Little sparkling star tail behind each sweet */}
-              {theme === 'golden_sprinkle' ? (
+              {theme === 'muffin_galaxy' ? (
                 <>
                   <motion.span 
                     animate={{ scale: [1, 2, 0], opacity: [0.8, 1, 0], y: [0, 12, 24], x: [-6, -12, -18] }}

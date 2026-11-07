@@ -59,12 +59,28 @@ export default function HomeEditorialSections({
     <div className="w-full bg-brand-cream text-brand-chocolate space-y-28 sm:space-y-36 md:space-y-44 pt-12 pb-24">
       
       {/* ================= 1. SMALL FEATURED COLLECTION (3-4 PRODUCTS) ================= */}
-      <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-12 space-y-10 sm:space-y-14">
+      <section className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-12 space-y-10 sm:space-y-14 overflow-hidden">
+        
+        {/* Giant Text Behind Editorial Watermark */}
+        <div 
+          className="absolute inset-0 flex items-center justify-center pointer-events-none -z-10 select-none overflow-hidden" 
+          aria-hidden="true"
+        >
+          <span className="font-serif text-[15vw] font-black tracking-tight text-[#32140D]/[0.02] uppercase leading-none">
+            COLLECTION
+          </span>
+        </div>
+
         <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-4">
           <div className="space-y-2">
-            <span className="text-xs uppercase tracking-[0.22em] font-medium text-brand-caramel block">
-              Curated Selection
-            </span>
+            <div className="flex items-center gap-3">
+              <span className="text-xs uppercase tracking-[0.22em] font-medium text-brand-caramel block">
+                Curated Selection
+              </span>
+              <span className="font-handwriting text-lg text-[#FF792B] font-bold">
+                ~ "Handcrafted daily in small batches" ~
+              </span>
+            </div>
             <h2 className="font-serif text-3xl sm:text-4xl text-brand-chocolate font-normal tracking-tight">
               Signature Bakehouse Creations
             </h2>

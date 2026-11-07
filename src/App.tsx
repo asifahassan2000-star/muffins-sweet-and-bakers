@@ -14,7 +14,9 @@ import CartDrawer from './components/CartDrawer';
 import AIChat from './components/AIChat';
 import OrderTracker from './components/OrderTracker';
 import NotificationManager from './components/NotificationManager';
-import CursorPhotoTrail from './components/CursorPhotoTrail';
+import FluidCursor from './components/FluidCursor';
+import SmoothScroll from './components/SmoothScroll';
+import CreativeStudioHero from './components/CreativeStudioHero';
 import BranchLocations from './components/BranchLocations';
 import FeaturedVideoReel from './components/FeaturedVideoReel';
 import AmbientBakerySound from './components/AmbientBakerySound';
@@ -31,6 +33,7 @@ import ThemeStudioPage from './components/ThemeStudioPage';
 import SplitScreenSlider from './components/SplitScreenSlider';
 import EditorialTextBridge from './components/EditorialTextBridge';
 import EditorialSliderOutro from './components/EditorialSliderOutro';
+import Interactive3DMuffinShowcase from './components/Interactive3DMuffinShowcase';
 
 // Lazy-Loaded Heavy Components for Rapid Initial Page Load
 const AdminDashboard = lazy(() => import('./components/AdminDashboard'));
@@ -83,8 +86,8 @@ export default function App() {
   const [isNavSidebarOpen, setIsNavSidebarOpen] = useState(false);
   const [recentlyAddedId, setRecentlyAddedId] = useState<string | null>(null);
   
-  // Theme configuration states - Muffin Galaxy theme as requested
-  const [theme, setTheme] = useState<string>('muffin_galaxy');
+  // Theme configuration states - Luxury Atelier (Main) & Muffin Galaxy
+  const [theme, setTheme] = useState<string>('luxury_main');
   const [isThemeOpen, setIsThemeOpen] = useState(false);
   const [isThemeModalOpen, setIsThemeModalOpen] = useState(false);
   const [isKitchenTimeOpen, setIsKitchenTimeOpen] = useState(false);
@@ -106,45 +109,16 @@ export default function App() {
 
     // Pre-load theme specific CSS variable overrides for instant smooth rendering
     const THEME_VARIABLE_MAP: Record<string, Record<string, string>> = {
-      sprinkle_noir: {
-        '--color-brand-cream': '#141423',
-        '--color-brand-sugar': '#1A1A2E',
-        '--color-brand-caramel': '#EAB543',
-        '--color-brand-honey': '#EAB543',
-        '--color-brand-gold': '#C4C4C4',
-        '--color-brand-chocolate': '#F5F5F7',
-        '--color-brand-marshmallow': '#22223B',
-        '--color-brand-glaze': 'rgba(234, 181, 67, 0.2)'
-      },
-      midnight_muffins: {
-        '--color-brand-cream': '#1A252F',
-        '--color-brand-sugar': '#2C3E50',
-        '--color-brand-caramel': '#E67E22',
-        '--color-brand-honey': '#F4A261',
-        '--color-brand-gold': '#E74C3C',
-        '--color-brand-chocolate': '#ECF0F1',
-        '--color-brand-marshmallow': '#213140',
-        '--color-brand-glaze': 'rgba(230, 126, 34, 0.25)'
-      },
-      muffin_party: {
-        '--color-brand-cream': '#FFFDF9',
-        '--color-brand-sugar': '#FFFFFF',
-        '--color-brand-caramel': '#FF9F1C',
-        '--color-brand-honey': '#2BAE66',
-        '--color-brand-gold': '#F72585',
-        '--color-brand-chocolate': '#1D2A44',
-        '--color-brand-marshmallow': '#FFF8EE',
-        '--color-brand-glaze': 'rgba(255, 159, 28, 0.2)'
-      },
-      muffin_oasis: {
-        '--color-brand-cream': '#FFFDFB',
-        '--color-brand-sugar': '#FFFFFF',
-        '--color-brand-caramel': '#FF6B6B',
-        '--color-brand-honey': '#4ECDC4',
-        '--color-brand-gold': '#FFE66D',
-        '--color-brand-chocolate': '#2D3748',
-        '--color-brand-marshmallow': '#F0FBF9',
-        '--color-brand-glaze': 'rgba(255, 107, 107, 0.18)'
+      luxury_main: {
+        '--color-brand-cream': '#FFFFFF',
+        '--color-brand-sugar': '#FCFAF8',
+        '--color-brand-caramel': '#E94F16',
+        '--color-brand-honey': '#FF792B',
+        '--color-brand-gold': '#F4B34D',
+        '--color-brand-chocolate': '#32140D',
+        '--color-brand-espresso': '#21100B',
+        '--color-brand-marshmallow': '#FBF8F5',
+        '--color-brand-glaze': 'rgba(233, 79, 22, 0.08)'
       },
       muffin_galaxy: {
         '--color-brand-cream': '#1A1423',
@@ -152,7 +126,8 @@ export default function App() {
         '--color-brand-caramel': '#F4A261',
         '--color-brand-honey': '#E76F51',
         '--color-brand-gold': '#E9C46A',
-        '--color-brand-chocolate': '#F8F9FA',
+        '--color-brand-chocolate': '#FFF8F0',
+        '--color-brand-espresso': '#372254',
         '--color-brand-marshmallow': '#372254',
         '--color-brand-glaze': 'rgba(244, 162, 97, 0.22)'
       }
@@ -171,17 +146,8 @@ export default function App() {
     }
 
     const themeLabels: Record<string, string> = {
-      sprinkle_noir: 'Sprinkle Noir ✨🖤',
-      midnight_muffins: 'Midnight Muffins 🌙🍪',
-      muffin_party: 'Muffin Party 🎈🍊',
-      muffin_oasis: 'Muffin Oasis 🌴🍰',
-      muffin_galaxy: 'Muffin Galaxy 🪐',
-      classic: 'Royal Lahore Amber',
-      velvet: 'Rich Velvet Red',
-      pistachio: 'Pistachio Kulfi Green',
-      espresso: 'Rich Espresso Dark',
-      cozy_brown: 'Cozy Bakery Warm',
-      golden_sprinkle: 'Golden Celebration Sprinkle'
+      luxury_main: 'Muffinns Luxury Atelier 👑',
+      muffin_galaxy: 'Muffin Galaxy 🪐'
     };
 
     setThemeTransition({
@@ -574,6 +540,9 @@ export default function App() {
   return (
     <div className={`min-h-screen w-full max-w-full overflow-x-hidden bg-brand-cream flex flex-col justify-between selection:bg-brand-caramel selection:text-brand-cream font-sans theme-${theme} relative`}>
       
+      {/* Lenis Smooth Scrolling for whole page synced with GSAP */}
+      <SmoothScroll />
+      
       {/* Global Page-Wipe & Fade Overlay Effect on Theme Switch */}
       <AnimatePresence>
         {themeTransition && (
@@ -620,129 +589,11 @@ export default function App() {
         )}
       </AnimatePresence>
       
-      {/* Background golden & multicolor sprinkles shiny particles system for golden_sprinkle theme */}
-      {theme === 'golden_sprinkle' && (
-        <div className="fixed inset-0 pointer-events-none overflow-hidden z-0">
-          {[...Array(25)].map((_, i) => {
-            const isStar = i % 3 === 0;
-            const size = isStar ? Math.random() * 8 + 12 : Math.random() * 4 + 8;
-            const left = `${Math.random() * 100}%`;
-            const colors = ['#D4AF37', '#FFC300', '#FF3E6C', '#00F0FF', '#39FF14'];
-            const color = colors[i % colors.length];
-            return (
-              <motion.div
-                key={`sprinkle-${i}`}
-                initial={{ y: -50, opacity: 0, rotate: 0 }}
-                animate={{ 
-                  y: ['0vh', '100vh'],
-                  x: [0, Math.random() * 100 - 50],
-                  opacity: [0, 0.9, 0.9, 0],
-                  rotate: [0, Math.random() * 360 + 180]
-                }}
-                transition={{
-                  duration: Math.random() * 10 + 10,
-                  repeat: Infinity,
-                  delay: Math.random() * 8,
-                  ease: "linear"
-                }}
-                style={{
-                  position: 'absolute',
-                  left,
-                  top: '-5%',
-                  width: isStar ? size : 3,
-                  height: isStar ? size : size * 2.5,
-                  backgroundColor: isStar ? 'transparent' : color,
-                  borderRadius: isStar ? 'none' : '4px',
-                  filter: 'drop-shadow(0 0 5px rgba(212,175,55,0.7))',
-                }}
-              >
-                {isStar && (
-                  <svg viewBox="0 0 24 24" fill={color} className="w-full h-full">
-                    <path d="M12 2L15 9L22 10L17 15L19 22L12 18L5 22L7 15L2 10L9 9Z" />
-                  </svg>
-                )}
-              </motion.div>
-            );
-          })}
-        </div>
-      )}
-
-      {/* Muffin Party Floating Party Confetti & Flying Muffins Background */}
-      {theme === 'muffin_party' && (
-        <div className="fixed inset-0 pointer-events-none overflow-hidden z-0">
-          <div className="absolute -top-10 left-1/4 w-[550px] h-[550px] bg-gradient-to-br from-[#FF9F1C]/20 via-[#F72585]/15 to-transparent rounded-full blur-3xl pointer-events-none" />
-          <div className="absolute bottom-5 right-5 w-[600px] h-[600px] bg-gradient-to-tr from-[#00BBF9]/20 via-[#2BAE66]/15 to-transparent rounded-full blur-3xl pointer-events-none" />
-          
-          {[...Array(28)].map((_, i) => {
-            const emojis = ['🍊', '🎈', '🎉', '🧁', '💗', '💚', '💙', '✨', '😃'];
-            const emoji = emojis[i % emojis.length];
-            const left = `${(i * 3.7) % 100}%`;
-            return (
-              <motion.div
-                key={`party-confetti-${i}`}
-                initial={{ y: `${(i * 9) % 100}vh`, opacity: 0.35, rotate: 0 }}
-                animate={{ 
-                  y: [`${(i * 9) % 100}vh`, `${((i * 9) + 100) % 110}vh`],
-                  x: [0, (i % 2 === 0 ? 35 : -35)],
-                  rotate: [0, 180, 360],
-                  scale: [0.9, 1.25, 0.9],
-                  opacity: [0.35, 0.9, 0.35]
-                }}
-                transition={{
-                  duration: 10 + (i % 6),
-                  repeat: Infinity,
-                  ease: "easeInOut"
-                }}
-                style={{
-                  position: 'absolute',
-                  left,
-                  fontSize: i % 3 === 0 ? '22px' : '15px',
-                  filter: 'drop-shadow(0 4px 10px rgba(255, 159, 28, 0.4))'
-                }}
-              >
-                {emoji}
-              </motion.div>
-            );
-          })}
-        </div>
-      )}
-
-      {/* Muffin Oasis Floating Confetti Sprinkles Background */}
-      {theme === 'muffin_oasis' && (
-        <div className="fixed inset-0 pointer-events-none overflow-hidden z-0">
-          <div className="absolute top-0 left-1/3 w-[500px] h-[500px] bg-gradient-to-br from-[#FF6B6B]/15 via-[#4ECDC4]/10 to-transparent rounded-full blur-3xl pointer-events-none" />
-          <div className="absolute bottom-10 right-10 w-[600px] h-[600px] bg-gradient-to-tr from-[#FFE66D]/20 via-[#FF6B6B]/10 to-transparent rounded-full blur-3xl pointer-events-none" />
-          
-          {[...Array(25)].map((_, i) => {
-            const emojis = ['🎉', '🧁', '✨', '🍓', '🍬', '💛', '🌸'];
-            const emoji = emojis[i % emojis.length];
-            const left = `${(i * 4) % 100}%`;
-            return (
-              <motion.div
-                key={`oasis-sprinkle-${i}`}
-                initial={{ y: `${(i * 10) % 100}vh`, opacity: 0.3, rotate: 0 }}
-                animate={{ 
-                  y: [`${(i * 10) % 100}vh`, `${((i * 10) + 100) % 110}vh`],
-                  x: [0, (i % 2 === 0 ? 25 : -25)],
-                  rotate: [0, 180, 360],
-                  opacity: [0.3, 0.8, 0.3]
-                }}
-                transition={{
-                  duration: 12 + (i % 7),
-                  repeat: Infinity,
-                  ease: "easeInOut"
-                }}
-                style={{
-                  position: 'absolute',
-                  left,
-                  fontSize: i % 3 === 0 ? '20px' : '14px',
-                  filter: 'drop-shadow(0 2px 8px rgba(255, 107, 107, 0.3))'
-                }}
-              >
-                {emoji}
-              </motion.div>
-            );
-          })}
+      {/* Luxury Atelier Ambient Background Light Atmosphere */}
+      {theme === 'luxury_main' && (
+        <div className="fixed inset-0 pointer-events-none overflow-hidden z-0" aria-hidden="true">
+          <div className="absolute top-10 right-1/4 w-[600px] h-[600px] bg-gradient-to-br from-[#F4B34D]/8 via-[#E94F16]/5 to-transparent rounded-full blur-3xl pointer-events-none" />
+          <div className="absolute bottom-20 left-10 w-[700px] h-[700px] bg-gradient-to-tr from-[#FF792B]/6 via-[#32140D]/3 to-transparent rounded-full blur-3xl pointer-events-none" />
         </div>
       )}
 
@@ -853,6 +704,12 @@ export default function App() {
                 cartCount={totalCartCount}
                 theme={theme}
               />
+              
+              {/* Bespoke Creative Studio Hero & Showcase with proper distance and minimal elegance */}
+              <div className="relative w-full my-16 sm:my-28">
+                <CreativeStudioHero onNavigate={handleNavigate} />
+              </div>
+
               {/* Editorial Text Bridge with generous gap before scroll animation */}
               <EditorialTextBridge onNavigate={handleNavigate} />
               
@@ -1287,8 +1144,8 @@ export default function App() {
         }} 
       />
 
-      {/* Interactive Floating Trail of Delicious Bakery Live Photos */}
-      <CursorPhotoTrail theme={theme} />
+      {/* GPU Fluid Cursor Solver with difference ink swirls */}
+      <FluidCursor />
 
     </div>
   );

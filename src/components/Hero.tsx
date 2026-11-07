@@ -119,6 +119,8 @@ export interface HeroProps {
 }
 
 export default function Hero({ onNavigate, onOpenOrderNow, onOpenSidebar, onOpenCart, cartCount = 0, theme }: HeroProps) {
+  const isGalaxy = theme === 'muffin_galaxy';
+  const heroBg = isGalaxy ? '#1A1423' : '#FFFFFF';
   const [done, setDone] = useState(false);
   const [open, setOpen] = useState(false);
   const [scrolled, setScrolled] = useState(false);
@@ -204,7 +206,14 @@ export default function Hero({ onNavigate, onOpenOrderNow, onOpenSidebar, onOpen
           .map((t) => SplitText.create(t as HTMLElement, SPLIT_VARS));
         gsap.set(
           splits.flatMap((s) => s.lines),
-          { overflow: 'hidden', paddingBottom: '0.12em', yPercent: 125, willChange: 'transform' },
+          { 
+            overflow: 'hidden', 
+            paddingBottom: '0.12em', 
+            yPercent: 125, 
+            xPercent: 40,
+            opacity: 0,
+            willChange: 'transform, opacity' 
+          },
         );
       };
 
@@ -353,14 +362,36 @@ export default function Hero({ onNavigate, onOpenOrderNow, onOpenSidebar, onOpen
           );
         }
 
-        // Title lines rise gracefully from clip masks
+        // Title lines come with animation down to up and right to left
         if (h && h.lines.length) {
-          tl.to(h.lines, { yPercent: 0, duration: 1.1, ease: EASE.settle, stagger: 0.08 }, 'openComplete+=0.14');
+          tl.to(
+            h.lines, 
+            { 
+              yPercent: 0, 
+              xPercent: 0, 
+              opacity: 1, 
+              duration: 1.25, 
+              ease: 'power3.out', 
+              stagger: 0.12 
+            }, 
+            'openComplete+=0.14'
+          );
         }
 
-        // Subtitle lines rise smoothly
+        // Subtitle lines come with animation down to up and right to left
         if (s && s.lines.length) {
-          tl.to(s.lines, { yPercent: 0, duration: 0.9, ease: EASE.settle, stagger: 0.05 }, 'openComplete+=0.32');
+          tl.to(
+            s.lines, 
+            { 
+              yPercent: 0, 
+              xPercent: 0, 
+              opacity: 1, 
+              duration: 1.1, 
+              ease: 'power3.out', 
+              stagger: 0.08 
+            }, 
+            'openComplete+=0.34'
+          );
         }
 
         // Action buttons glide up
@@ -477,7 +508,7 @@ export default function Hero({ onNavigate, onOpenOrderNow, onOpenSidebar, onOpen
     <div
       ref={rootRef}
       className="relative w-full overflow-hidden text-brand-chocolate select-none antialiased font-sans"
-      style={{ background: COLORS.cream }}
+      style={{ background: heroBg }}
     >
       {/* ---------- Top Editorial Navbar ---------- */}
       <header
@@ -580,7 +611,7 @@ export default function Hero({ onNavigate, onOpenOrderNow, onOpenSidebar, onOpen
       {!done && (
         <div
           className="fixed inset-0 z-50 select-none overflow-hidden"
-          style={{ background: COLORS.cream }}
+          style={{ background: heroBg }}
           aria-hidden="true"
         >
           {images.map((src, i) => {
@@ -657,27 +688,43 @@ export default function Hero({ onNavigate, onOpenOrderNow, onOpenSidebar, onOpen
           ref={heroContentRef}
           className="absolute inset-0 z-20 flex flex-col items-center justify-center px-6 text-center opacity-0 pointer-events-none invisible"
         >
-          <div className="w-full max-w-5xl mx-auto space-y-4 sm:space-y-6">
+          <div className="w-full max-w-7xl mx-auto px-4 sm:px-8 space-y-4 sm:space-y-6 text-center">
+            {/* Elegant unboxed editorial brand crest in dark brown/black */}
             <div 
               ref={badgeRef}
-              className="flex items-center justify-center gap-2 text-xs font-mono uppercase tracking-[0.3em] text-brand-caramel font-bold"
+              className="text-xs sm:text-sm font-mono uppercase tracking-[0.35em] text-[#21100B] font-bold flex items-center justify-center gap-3"
             >
-              <span>● Artisanal Bakehouse</span>
-              <span>·</span>
-              <span>Bahawalpur, Punjab</span>
+              <span className="w-1.5 h-1.5 rounded-full bg-[#21100B]" />
+              <span>Atelier 1988 · Artisanal Bakehouse & Heritage Patisserie</span>
+              <span className="w-1.5 h-1.5 rounded-full bg-[#21100B]" />
             </div>
 
+            {/* Deep Dark Brown and Black Heading — Bold, Minimal, High Contrast */}
             <h1
               ref={titleRef}
-              className="font-serif font-black text-[clamp(2.8rem,7.5vw,7.8rem)] leading-[0.92] tracking-tight uppercase text-brand-chocolate drop-shadow-[0_8px_32px_rgba(0,0,0,0.65)]"
+              className="hero-headline-dark font-serif font-black text-[clamp(2.8rem,7.5vw,7.8rem)] leading-[0.92] tracking-tight uppercase text-[#21100B]"
+              style={{
+                color: '#21100B',
+              }}
             >
               {title}
             </h1>
 
+            {/* Minimal Dark Divider Line — No Green */}
+            <div className="flex items-center justify-center gap-3 sm:gap-4 py-1" aria-hidden="true">
+              <span className="h-px w-16 sm:w-32 bg-gradient-to-r from-transparent via-[#21100B]/30 to-transparent" />
+              <span className="font-handwriting text-lg sm:text-2xl text-[#21100B] font-bold tracking-wide">
+                ✦ slow-baked heritage recipes & fresh morning ovens ✦
+              </span>
+              <span className="h-px w-16 sm:w-32 bg-gradient-to-l from-transparent via-[#21100B]/30 to-transparent" />
+            </div>
+
+            {/* Clean unboxed subtitle in dark brown / black extending across the screen */}
             {subtitle && (
               <p
                 ref={subRef}
-                className="mx-auto mt-4 sm:mt-6 max-w-[42ch] font-sans text-sm sm:text-base md:text-lg leading-relaxed text-brand-chocolate/90 font-medium"
+                className="hero-subtitle-clean mx-auto mt-2 sm:mt-4 max-w-4xl font-sans text-base sm:text-xl md:text-2xl font-normal text-[#21100B] leading-relaxed tracking-wide"
+                style={{ color: '#21100B' }}
               >
                 {subtitle}
               </p>
@@ -689,7 +736,7 @@ export default function Hero({ onNavigate, onOpenOrderNow, onOpenSidebar, onOpen
             >
               <button
                 onClick={() => (onOpenOrderNow ? onOpenOrderNow() : onNavigate('menu'))}
-                className="inline-flex items-center gap-2 px-6 py-3.5 bg-brand-caramel text-brand-cream hover:bg-brand-honey transition-all duration-300 font-mono text-xs uppercase tracking-widest font-bold rounded-xs shadow-lg cursor-pointer group"
+                className="inline-flex items-center gap-2 px-7 py-3.5 bg-[#21100B] text-white hover:bg-black transition-all duration-300 font-mono text-xs uppercase tracking-widest font-bold rounded-full shadow-lg cursor-pointer group"
               >
                 <span>Explore The Menu</span>
                 <ArrowRight className="w-4 h-4 transition-transform duration-300 group-hover:translate-x-1" />
@@ -697,12 +744,13 @@ export default function Hero({ onNavigate, onOpenOrderNow, onOpenSidebar, onOpen
 
               <button
                 onClick={() => onNavigate('story')}
-                className="text-xs font-mono uppercase tracking-widest font-bold text-brand-chocolate hover:text-brand-caramel transition-colors cursor-pointer underline decoration-brand-caramel/40 underline-offset-8 px-2 py-3"
+                className="text-xs font-mono uppercase tracking-widest font-bold text-[#21100B] hover:text-black transition-colors cursor-pointer underline decoration-[#21100B]/40 underline-offset-8 px-2 py-3"
               >
                 Our 1988 Heritage Story →
               </button>
             </div>
           </div>
+
 
           {/* Bottom Discover Scroll Trigger */}
           <button

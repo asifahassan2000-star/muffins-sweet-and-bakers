@@ -38,7 +38,7 @@ export default function NavigationSidebar({
     { label: 'Complete Menu', view: 'menu', num: '03', desc: 'Full catalogue of cakes, mithai & muffins' },
     { label: 'Contact & Inquiries', view: 'contact', num: '04', desc: 'Custom orders, catering & feedback' },
     { label: 'Find Us / Branches', view: 'find-us', num: '05', desc: '7 locations across Bahawalpur' },
-    { label: 'Theme Studio', view: 'theme-studio', num: '06', desc: 'Classic Honey & Midnight Espresso aesthetics' },
+    { label: 'Theme Studio', view: 'theme-studio', num: '06', desc: 'Luxury Atelier & Galaxy Muffins editions' },
     { label: 'Track Your Order', view: 'tracker', num: '07', desc: 'Live kitchen & delivery status' },
   ];
 

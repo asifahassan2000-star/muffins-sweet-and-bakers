@@ -50,17 +50,8 @@ export default function TopQuickAccessBar({
   }, []);
 
   const themeDisplayNames: Record<string, string> = {
-    muffin_galaxy: 'Muffin Galaxy 🪐',
-    sprinkle_noir: 'Sprinkle Noir ✨🖤',
-    midnight_muffins: 'Midnight Muffins 🌙🍪',
-    muffin_party: 'Muffin Party 🎈🍊',
-    muffin_oasis: 'Muffin Oasis 🌴🍰',
-    classic: 'Classic Honey 🍯',
-    golden_sprinkle: 'Golden Sprinkle ✨',
-    velvet: 'Royal Velvet 🍇',
-    pistachio: 'Pistachio Mint 🍃',
-    espresso: 'Midnight Espresso ☕',
-    cozy_brown: 'Chestnut & Mocha 🍂'
+    luxury_main: 'Luxury Atelier 👑',
+    muffin_galaxy: 'Muffin Galaxy 🪐'
   };
 
   const currentThemeLabel = themeDisplayNames[currentTheme] || currentTheme;
