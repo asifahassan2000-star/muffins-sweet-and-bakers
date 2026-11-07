@@ -1,0 +1,945 @@
+/* eslint-disable @next/next/no-img-element */
+'use client'
+
+import {useCallback, useEffect, useRef, useState} from 'react'
+import {gsap} from 'gsap'
+import {useGSAP} from '@gsap/react'
+import {Flip} from 'gsap/Flip'
+import {ScrollTrigger} from 'gsap/ScrollTrigger'
+import {SplitText} from 'gsap/SplitText'
+import FluidCursor from './FluidCursor'
+import './creative-studio-hero.css'
+
+gsap.registerPlugin(useGSAP, Flip, ScrollTrigger, SplitText)
+// Mobile browsers resize the viewport as the URL bar shows/hides; skipping
+// those refreshes avoids a layout stutter mid-scroll.
+ScrollTrigger.config({ignoreMobileResize: true})
+
+/* ------------------------------------------------------------------ */
+/*  Config                                                             */
+/* ------------------------------------------------------------------ */
+
+// SF Pro Display (local, see the css) for the type, DIN Next for the nav
+// indices, Fraunces for the wordmark.
+const FONT = "'SF Pro Display', -apple-system, 'Helvetica Neue', Helvetica, Arial, sans-serif"
+const FONT_INDEX = "'DIN Next', 'SF Pro Display', Helvetica, Arial, sans-serif"
+const FONT_LOGO = "Fraunces, 'Times New Roman', serif"
+// Fraunces is a variable font whose optical size follows the font-size, so
+// the 7vw intro wordmark and the 2.9vw header one would get different glyph
+// shapes and widths — and the Flip hand-over between them would show. Pin
+// the display cut on every wordmark so scaling one onto the other is exact.
+const LOGO_STYLE = {fontFamily: FONT_LOGO, fontVariationSettings: "'opsz' 144"}
+
+/* ------------------------------------------------------------------ */
+/*  Intro — every number the timeline uses, in one place                */
+/* ------------------------------------------------------------------ */
+
+const INTRO = {
+  // Step 1 — the wordmark drops in from just above its resting spot while
+  // a white plate of the same size grows up from its bottom edge. The
+  // wordmark is black on the black page, so it only shows where the plate
+  // has filled in beneath it.
+  travel: '1.3em', // how far above the plate the wordmark starts (em of the wordmark)
+  meetDuration: 1.3, // seconds for the drop and the plate growth
+  meetEase: 'expo.inOut',
+  logoSize: 'max(7vw, 44px)', // wordmark size during the intro (floor for phones)
+  platePadY: '-0.05em', // plate = wordmark box + this padding (vertical; negative = tighter than the box)
+  platePadX: '0.08em', // … and horizontal
+
+  // Step 2 — the wordmark rises to the header wordmark's spot (same place,
+  // same size) while the plate scales up until it fills the whole section.
+  hold: 0.25, // seconds to rest at the centre before rising
+  riseDuration: 1.2, // seconds for the rise and the plate fill
+  riseEase: 'expo.inOut',
+
+  // Step 3 — the headline lines slide up out of their masks, one after the
+  // other, starting a little before step 2 has finished.
+  titleLead: 0.6, // seconds before the rise ends that the first line starts
+  titleDuration: 1.5,
+  titleStagger: 0.12,
+  titleEase: 'expo.out',
+
+  // Step 4 — once the plate has filled the section the intro layer fades out
+  // (the wordmark now sits exactly on the header one) and the rest of the
+  // content slides up into place: location, tagline, nav links, the two copy
+  // blocks — in DOM order — plus the image from the bottom edge.
+  pageLead: 0.6, // seconds before the plate has fully grown that step 4 starts
+  pageFade: 0.7, // seconds for the intro layer to fade away
+  contentTravel: '1.2em', // how far below its spot each text block starts
+  imageTravel: '25vh', // how far below its spot the image starts
+  contentDuration: 1.2,
+  contentStagger: 0.05,
+  copyDelay: 0.3, // seconds after 'page' that the copy lines start
+  copyStagger: 0.08, // seconds between copy lines
+  contentEase: 'expo.out',
+  // The page is scroll-locked from the start of the intro until this many
+  // seconds after 'page' (the backdrop is gone by pageFade; the content is
+  // still settling, which is fine to scroll through).
+  unlockDelay: 0.5,
+}
+
+// Scroll — the image scrolls up with the page from its slot (top slotTop)
+// and grows as it goes, reaching the header's content width — the page
+// gutters — and `endHeight` by the time its top edge is `endAt` down the
+// viewport; the two copy blocks fade out on the way.
+const SCROLL = {
+  slotTop: 79, // vh — where the copy | visual | copy row sits in the hero
+  slotTopPhone: 44, // vh — the same on phones (headline + tagline above, the visual fills the rest)
+  endAt: '10%', // the image is fully grown when its top edge is this far down the viewport
+  endHeight: '90vh', // the grown image's height (width = the header's content width)
+  gap: '14vh', // space under the grown image = the intro section's bottom padding
+  fadeAt: 0.2, // progress (0–1) at which the copy starts fading
+  fadeLength: 0.15, // progress it takes to fade
+  scrub: true as const, // true = tied to the scrollbar; a number adds smoothing (seconds)
+
+  // Intro text — split into lines (SplitText), each in its own mask, and
+  // revealed once with a stagger when the section scrolls into view.
+  revealStart: 'top 75%', // ScrollTrigger start for the intro section
+  revealDuration: 1.2,
+  revealStagger: 0.08,
+  revealEase: 'expo.out',
+}
+
+// Nav link hover — the label's characters roll up out of view while a
+// second copy rolls in from below, one character after the other.
+// Sticky header — scrubbed by the scroll: as the hero nav travels from
+// `startAt` of the viewport up to the top, the six links glide into 3 + 3
+// header slots (left / right), the strip slides down and the wordmark drops
+// into the centre. Being a pure function of the scroll position it is
+// reversible at any speed and can never be left half-way.
+const HEADER = {
+  startAt: 0.5, // the transition starts when the nav's top is here (0–1 of the viewport height)
+  scrub: true as const, // true = tied to the scrollbar; a number adds smoothing (seconds)
+  stripAt: 0.5, // progress (0–1) at which the strip starts sliding in
+  logoAt: 0.6, // … and the wordmark starts dropping in
+}
+
+// Phone menu sheet — see the menu timeline in the component.
+const MENU = {
+  duration: 0.9, // seconds for the sheet to unroll from the top
+  ease: 'expo.inOut',
+  itemsAt: 0.35, // seconds into the unroll that the rows start rising
+  travel: 40, // px each row rises
+  itemDuration: 1,
+  stagger: 0.06,
+  closeSpeed: 1.5, // reverse plays this much faster
+}
+
+const HOVER = {
+  duration: 0.6, // seconds per character
+  stagger: 0.025, // seconds between characters
+  ease: 'cubic-bezier(0.87, 0, 0.13, 1)', // ≈ expo.inOut
+}
+
+// The optional page Lenis (SmoothScroll.tsx). Typed here, not via that file's
+// global declaration, so deleting the file is enough to drop it.
+const pageLenis = () => (window as Window & {__lenis?: {stop(): void; start(): void}}).__lenis
+
+/* ------------------------------------------------------------------ */
+/*  Props                                                              */
+/* ------------------------------------------------------------------ */
+
+export type StudioLink = {label: string; href?: string}
+
+/** The text section under the hero. */
+export type StudioIntro = {
+  label: string
+  heading: string
+  /** The big statement, right column. */
+  lead: string
+}
+
+export type CreativeStudioHeroProps = {
+  brand?: string
+  /** Top-left: "{lead} {place}" with the place underlined, then a second line. */
+  location?: {lead: string; place: string; line2: string}
+  /** Two short lines top-right. */
+  tagline?: [string, string]
+  /** Headline lines, rendered one per row. */
+  title?: string[]
+  links?: StudioLink[]
+  /** Copy under the nav: left block and right block, one string per line. */
+  leftCopy?: string[]
+  rightCopy?: string[]
+  /** The visual peeking up from the bottom edge; grows to the header's width on scroll. */
+  image?: string
+  /** The fluid-ink pointer trail (FluidCursor) over the whole page. Pointer devices only. */
+  fluidCursor?: boolean
+  intro?: StudioIntro
+}
+
+const DEFAULT_INTRO: StudioIntro = {
+  label: 'Introduction',
+  heading: 'We are Kinetik',
+  lead: 'We build motion-first websites for brands that want to be remembered. Our studio designs, animates and ships React and WebGL experiences — scroll-driven stories, hover states that feel alive and hero sections built for speed and search.',
+}
+
+const DEFAULT_LINKS: StudioLink[] = [
+  {label: 'Work'},
+  {label: 'Services'},
+  {label: 'Playground'},
+  {label: 'Studio'},
+  {label: 'Journal'},
+  {label: 'Contact'},
+]
+
+/* ------------------------------------------------------------------ */
+/*  Masked lines (headline + copy intro)                               */
+/* ------------------------------------------------------------------ */
+
+// One overflow-hidden mask per line; the inner line starts below it and
+// slides up during the intro.
+function MaskedLines({
+  lines,
+  register,
+}: {
+  lines: string[]
+  register: (el: HTMLElement | null) => void
+}) {
+  return lines.map((line) => (
+    <span key={line} className="block overflow-hidden">
+      <span
+        ref={register}
+        className="block will-change-transform [backface-visibility:hidden]"
+        style={{transform: 'translateY(105%)'}}
+      >
+        {line}
+      </span>
+    </span>
+  ))
+}
+
+/* ------------------------------------------------------------------ */
+/*  Rolling label (nav hover)                                          */
+/* ------------------------------------------------------------------ */
+
+// Two copies of the text, one above the other inside a mask; the parent
+// `group` hover moves both up by one line, character by character.
+function RollingLabel({text}: {text: string}) {
+  const chars = Array.from(text).map((c, i) => ({c: c === ' ' ? ' ' : c, i}))
+  const char = (shift: string) =>
+    chars.map(({c, i}) => (
+      <span
+        key={i}
+        className={`inline-block transition-transform will-change-transform ${shift}`}
+        style={{
+          transitionDuration: `${HOVER.duration}s`,
+          transitionDelay: `${i * HOVER.stagger}s`,
+          transitionTimingFunction: HOVER.ease,
+        }}
+      >
+        {c}
+      </span>
+    ))
+  return (
+    <span className="relative block overflow-hidden pr-[0.08em] -mr-[0.08em] leading-[1.15]">
+      <span className="block">{char('group-hover:-translate-y-full')}</span>
+      <span aria-hidden className="absolute inset-0 block">
+        {char('translate-y-full group-hover:translate-y-0')}
+      </span>
+    </span>
+  )
+}
+
+/* ------------------------------------------------------------------ */
+/*  Component                                                          */
+/* ------------------------------------------------------------------ */
+
+export default function CreativeStudioHero({
+  brand = 'Kinetik',
+  location = {lead: 'Based In', place: 'Mumbai, India', line2: 'Working With Brands Worldwide'},
+  tagline = ['Motion Design Studio', 'GSAP, React & WebGL Websites'],
+  title = ['Motion First', 'Design Studio'],
+  links = DEFAULT_LINKS,
+  leftCopy = [
+    'Scroll-driven stories, hover states',
+    'that feel alive and hero sections',
+    'people remember.',
+  ],
+  rightCopy = [
+    'Animated websites built for speed',
+    'and search — from the first frame',
+    'to the last pixel.',
+  ],
+  image = '/mfa/creative-studio-hero/hero-visual.avif',
+  fluidCursor = true,
+  intro = DEFAULT_INTRO,
+}: CreativeStudioHeroProps) {
+  const root = useRef<HTMLDivElement>(null)
+  const [menuOpen, setMenuOpen] = useState(false) // phone menu sheet
+  const menuRef = useRef<HTMLDivElement>(null)
+  const menuItems = useRef<HTMLElement[]>([]) // header row, links, footer — in DOM order
+  const menuTl = useRef<gsap.core.Timeline>(null)
+  const collectMenuItem = (el: HTMLElement | null) => {
+    if (el && !menuItems.current.includes(el)) menuItems.current.push(el)
+  }
+  const introLayerRef = useRef<HTMLDivElement>(null)
+  const introLogoRef = useRef<HTMLSpanElement>(null)
+  const plateRef = useRef<HTMLSpanElement>(null)
+  const headerRef = useRef<HTMLElement>(null)
+  const headerLogoRef = useRef<HTMLAnchorElement>(null)
+  const stageRef = useRef<HTMLDivElement>(null) // the one-viewport hero
+  const rowRef = useRef<HTMLDivElement>(null) // the copy | visual | copy row
+  const introSectionRef = useRef<HTMLElement>(null)
+  const introTextRefs = useRef<HTMLElement[]>([]) // label, heading, lead
+  const imageRef = useRef<HTMLImageElement>(null)
+  const copyRefs = useRef<HTMLParagraphElement[]>([])
+  // Lists of elements the intro animates, collected in DOM order.
+  const titleLines = useRef<HTMLElement[]>([])
+  const copyLines = useRef<HTMLElement[]>([])
+  const content = useRef<HTMLElement[]>([]) // everything step 4 slides in whole
+  // Callback refs: each pushes its element into the matching list once.
+  const collect = (el: HTMLElement | null) => {
+    if (el && !content.current.includes(el)) content.current.push(el)
+  }
+  const collectTitle = (el: HTMLElement | null) => {
+    if (el && !titleLines.current.includes(el)) titleLines.current.push(el)
+  }
+  const navRef = useRef<HTMLElement>(null)
+  const stripRef = useRef<HTMLDivElement>(null)
+  const barLogoRef = useRef<HTMLAnchorElement>(null)
+  const heroLinks = useRef<HTMLElement[]>([])
+  const barLinks = useRef<HTMLElement[]>([])
+  const collectHeroLink = (el: HTMLElement | null) => {
+    collect(el)
+    if (el && !heroLinks.current.includes(el)) heroLinks.current.push(el)
+  }
+  const collectBarLink = (el: HTMLElement | null) => {
+    if (el && !barLinks.current.includes(el)) barLinks.current.push(el)
+  }
+  const collectCopy = (el: HTMLElement | null) => {
+    if (el && !copyLines.current.includes(el)) copyLines.current.push(el)
+  }
+  const collectIntroText = (el: HTMLElement | null) => {
+    if (el && !introTextRefs.current.includes(el)) introTextRefs.current.push(el)
+  }
+
+  // Scroll lock while the intro plays and while the phone menu is open: wheel /
+  // touch / keyboard scrolling is swallowed. No overflow:hidden, so the
+  // scrollbar keeps its width and nothing re-flows underneath the intro.
+  // Smooth scrolling is optional and lives in SmoothScroll.tsx; if it is on
+  // the page (window.__lenis) it is paused too, and `data-scroll-locked` on
+  // <html> lets it start paused when it mounts after the lock.
+  const lockedRef = useRef(false)
+  const lockScroll = useCallback(() => {
+    lockedRef.current = true
+    document.documentElement.setAttribute('data-scroll-locked', '')
+    pageLenis()?.stop()
+    const block = (e: Event) => e.preventDefault()
+    const keys = new Set(['ArrowUp', 'ArrowDown', 'PageUp', 'PageDown', 'Home', 'End', ' '])
+    const key = (e: KeyboardEvent) => {
+      if (keys.has(e.key)) e.preventDefault()
+    }
+    window.addEventListener('wheel', block, {passive: false})
+    window.addEventListener('touchmove', block, {passive: false})
+    window.addEventListener('keydown', key)
+    return () => {
+      if (!lockedRef.current) return
+      lockedRef.current = false
+      document.documentElement.removeAttribute('data-scroll-locked')
+      pageLenis()?.start()
+      window.removeEventListener('wheel', block)
+      window.removeEventListener('touchmove', block)
+      window.removeEventListener('keydown', key)
+    }
+  }, [])
+
+  // Phone menu: the sheet is revealed from the top edge (clip-path, so the
+  // page never shows through underneath) and its rows rise in after it.
+  // Built once, paused; play / reverse on open / close.
+  useGSAP(
+    () => {
+      const sheet = menuRef.current
+      if (!sheet) return
+      menuTl.current = gsap
+        .timeline({paused: true, defaults: {ease: MENU.ease}})
+        .set(sheet, {autoAlpha: 1})
+        .fromTo(
+          sheet,
+          {clipPath: 'inset(0 0 100% 0)'},
+          {clipPath: 'inset(0 0 0% 0)', duration: MENU.duration},
+        )
+        .fromTo(
+          menuItems.current,
+          {y: MENU.travel, opacity: 0},
+          {y: 0, opacity: 1, duration: MENU.itemDuration, stagger: MENU.stagger, ease: 'expo.out'},
+          MENU.itemsAt,
+        )
+    },
+    {scope: root},
+  )
+  const menuUnlock = useRef<() => void>(null)
+  useEffect(() => {
+    const tl = menuTl.current
+    if (!tl) return
+    if (menuOpen) {
+      menuUnlock.current = lockScroll()
+      tl.timeScale(1).play()
+    } else {
+      menuUnlock.current?.()
+      menuUnlock.current = null
+      tl.timeScale(MENU.closeSpeed).reverse()
+    }
+  }, [menuOpen, lockScroll])
+
+  useGSAP(
+    () => {
+      const stage = stageRef.current
+      const header = headerRef.current
+      const introLayer = introLayerRef.current
+      const logo = introLogoRef.current
+      const plate = plateRef.current
+      const target = headerLogoRef.current
+      const lines = titleLines.current
+      const copy = copyLines.current
+      const row = rowRef.current
+      const visual = imageRef.current
+      const introSection = introSectionRef.current
+      if (
+        !stage ||
+        !header ||
+        !row ||
+        !introSection ||
+        !introLayer ||
+        !logo ||
+        !plate ||
+        !target ||
+        !visual
+      )
+        return
+
+      // Scroll: one scrubbed timeline, 0–1 from the hero at rest to the
+      // image's top edge reaching the top of the viewport.
+      gsap
+        .timeline({
+          scrollTrigger: {
+            // The row shares the image's top edge but is never transformed,
+            // so the intro's y offset on the image can't skew the measurement.
+            trigger: row,
+            start: () => `top ${(row.offsetTop / stage.offsetHeight) * 100}%`, // = the image at rest
+            end: `top ${SCROLL.endAt}`,
+            scrub: SCROLL.scrub,
+            invalidateOnRefresh: true,
+          },
+          defaults: {ease: 'none'},
+        })
+        .to(
+          visual,
+          {
+            // the header's content box = the page's container width
+            width: () => {
+              const cs = getComputedStyle(header)
+              return header.clientWidth - parseFloat(cs.paddingLeft) - parseFloat(cs.paddingRight)
+            },
+            height: SCROLL.endHeight,
+            duration: 1,
+          },
+          0,
+        )
+        .to(copyRefs.current, {opacity: 0, duration: SCROLL.fadeLength}, SCROLL.fadeAt)
+
+      // Sticky header, scrubbed (see HEADER). The header links (fixed, so
+      // the scroll can't disturb them) start exactly on the hero links'
+      // spots at progress 0 — that is where the two sets swap visibility —
+      // and glide to their slots by progress 1.
+      const nav = navRef.current
+      const strip = stripRef.current
+      const barLogo = barLogoRef.current
+      const compact = window.matchMedia('(max-width: 767px)').matches // strip + wordmark only
+      if (nav && strip && barLogo) {
+        // Where hero link i sits on screen the moment the transition starts,
+        // relative to header link i. Layout offsets, so no transform in flight
+        // (the intro's, or this one's) can skew the numbers on refresh.
+        const from = (i: number) => {
+          const hero = heroLinks.current[i]
+          const slot = barLinks.current[i]
+          const heroY = hero.offsetTop + hero.offsetHeight / 2 + innerHeight * HEADER.startAt
+          return {
+            x:
+              nav.offsetLeft +
+              hero.offsetLeft +
+              hero.offsetWidth / 2 -
+              (slot.offsetLeft + slot.offsetWidth / 2),
+            y: heroY - (slot.offsetTop + slot.offsetHeight / 2),
+            // per axis, so the header link covers the hero link exactly
+            scaleX: hero.offsetWidth / slot.offsetWidth,
+            scaleY: hero.offsetHeight / slot.offsetHeight,
+          }
+        }
+        let shown = false
+        const header = gsap.timeline({
+          defaults: {ease: 'none'},
+          scrollTrigger: {
+            trigger: compact ? row : nav,
+            start: `top ${HEADER.startAt * 100}%`,
+            end: 'top top',
+            scrub: HEADER.scrub,
+            invalidateOnRefresh: true,
+            onUpdate: (self) => {
+              const show = self.progress > 0
+              if (show === shown || compact) return
+              shown = show
+              gsap.set(heroLinks.current, {autoAlpha: show ? 0 : 1})
+              gsap.set(barLinks.current, {autoAlpha: show ? 1 : 0})
+            },
+          },
+        })
+        if (!compact) {
+          barLinks.current.forEach((link, i) =>
+            header.fromTo(
+              link,
+              {
+                x: () => from(i).x,
+                y: () => from(i).y,
+                scaleX: () => from(i).scaleX,
+                scaleY: () => from(i).scaleY,
+              },
+              {x: 0, y: 0, scaleX: 1, scaleY: 1, duration: 1},
+              0,
+            ),
+          )
+        }
+        header
+          .fromTo(
+            strip,
+            {yPercent: -100, y: 0},
+            {yPercent: 0, duration: 1 - HEADER.stripAt},
+            HEADER.stripAt,
+          )
+          .fromTo(
+            barLogo,
+            {yPercent: -110, y: 0},
+            {yPercent: 0, duration: 1 - HEADER.logoAt},
+            HEADER.logoAt,
+          )
+      }
+
+      // Intro text reveal: SplitText re-splits on resize / font load
+      // (autoSplit) and calls onSplit again, so the lines always match.
+      const split = SplitText.create(introTextRefs.current, {
+        type: 'lines',
+        mask: 'lines',
+        linesClass: 'will-change-transform [backface-visibility:hidden]',
+        autoSplit: true,
+        onSplit: (self) =>
+          gsap.from(self.lines, {
+            yPercent: 105,
+            duration: SCROLL.revealDuration,
+            stagger: SCROLL.revealStagger,
+            ease: SCROLL.revealEase,
+            scrollTrigger: {trigger: introSection, start: SCROLL.revealStart, once: true},
+          }),
+      })
+
+      if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
+        // Straight to the finished hero.
+        gsap.set(introLayer, {autoAlpha: 0})
+        gsap.set([...lines, ...copy], {clearProps: 'all'})
+        return
+      }
+
+      // The header wordmark stays hidden until the intro one has landed on it.
+      gsap.set(target, {opacity: 0})
+
+      // Step 2's move, built first while the wordmark is still untouched:
+      // Flip.fit works out the x / y / scale that lay the intro wordmark
+      // exactly over the header one and returns the tween that gets it there.
+      const fit = Flip.fit(logo, target, {
+        scale: true,
+        duration: INTRO.riseDuration,
+        ease: INTRO.riseEase,
+      })
+
+      // The intro timeline. Each step is a labelled block: change a number
+      // in INTRO, or add the next step after the last one.
+      window.scrollTo(0, 0)
+      const unlock = lockScroll()
+      const tl = gsap.timeline({defaults: {ease: INTRO.meetEase, duration: INTRO.meetDuration}})
+
+      // Step 1 — wordmark drops in, plate grows up from its bottom edge.
+      tl.addLabel('meet')
+        .fromTo(logo, {y: `-${INTRO.travel}`, opacity: 1}, {y: 0}, 'meet')
+        .fromTo(plate, {scaleY: 0, transformOrigin: '50% 100%', opacity: 1}, {scaleY: 1}, 'meet')
+
+      // Step 2 — the wordmark flips onto the header wordmark; the plate grows
+      // from the centre until it covers the section.
+      tl.addLabel('rise', `meet+=${INTRO.meetDuration + INTRO.hold}`)
+        .add(fit as gsap.core.Tween, 'rise')
+        .to(
+          plate,
+          {
+            transformOrigin: '50% 50%',
+            scaleX: stage.offsetWidth / plate.offsetWidth,
+            scaleY: stage.offsetHeight / plate.offsetHeight,
+            duration: INTRO.riseDuration,
+            ease: INTRO.riseEase,
+          },
+          'rise',
+        )
+
+      // Step 3 — headline lines rise out of their masks, staggered.
+      tl.addLabel('title', `rise+=${INTRO.riseDuration - INTRO.titleLead}`).fromTo(
+        lines,
+        {yPercent: 105, y: 0}, // y: 0 clears the inline translateY the line starts with
+        {
+          yPercent: 0,
+          duration: INTRO.titleDuration,
+          stagger: INTRO.titleStagger,
+          ease: INTRO.titleEase,
+        },
+        'title',
+      )
+
+      // Hand-over: the moment the flip lands, swap the intro wordmark for the
+      // real header one (same glyphs, same spot — invisible to the eye).
+      tl.set(logo, {autoAlpha: 0}, `rise+=${INTRO.riseDuration}`).set(target, {opacity: 1}, '<')
+
+      // Step 4 — the backdrop (black page + plate) fades away and the rest of
+      // the content slides in. The wordmark lives outside the backdrop, so
+      // it stays crisp while the backdrop fades.
+      tl.addLabel('page', `rise+=${INTRO.riseDuration - INTRO.pageLead}`)
+        .to(introLayer, {autoAlpha: 0, duration: INTRO.pageFade, ease: 'none'}, 'page')
+        .fromTo(
+          content.current,
+          {y: INTRO.contentTravel, opacity: 0},
+          {
+            y: 0,
+            opacity: 1,
+            duration: INTRO.contentDuration,
+            stagger: INTRO.contentStagger,
+            ease: INTRO.contentEase,
+          },
+          'page',
+        )
+        .fromTo(
+          visual,
+          {y: INTRO.imageTravel, opacity: 0},
+          {y: 0, opacity: 1, duration: INTRO.contentDuration, ease: INTRO.contentEase},
+          'page',
+        )
+        // the copy beside the image: line by line out of its masks
+        .fromTo(
+          copy,
+          {yPercent: 105, y: 0},
+          {
+            yPercent: 0,
+            duration: INTRO.contentDuration,
+            stagger: INTRO.copyStagger,
+            ease: INTRO.contentEase,
+          },
+          `page+=${INTRO.copyDelay}`,
+        )
+        .call(unlock, [], `page+=${INTRO.unlockDelay}`)
+
+      return () => {
+        unlock()
+        split.revert()
+        tl.kill()
+      }
+    },
+    {scope: root},
+  )
+
+  const half = Math.ceil(links.length / 2)
+  // A header link slot: same markup as the hero links so the Flip reads as one element.
+  const barLink = (link: StudioLink, i: number) => (
+    <a
+      key={link.label}
+      ref={collectBarLink}
+      data-flip-id={`link-${i}`}
+      href={link.href ?? '#'}
+      className="group pointer-events-auto flex items-start gap-[0.6vw] opacity-0 will-change-[transform,opacity]"
+    >
+      <span
+        className="mt-[0.2em] text-[0.36em] font-light tabular-nums"
+        style={{fontFamily: FONT_INDEX}}
+      >
+        {String(i + 1).padStart(2, '0')}
+      </span>
+      <RollingLabel text={link.label} />
+    </a>
+  )
+
+  return (
+    <div
+      ref={root}
+      className="bg-[#f1f1ef] text-[#111] [--slot:var(--slot-desktop)] max-md:[--slot:var(--slot-phone)]"
+      style={
+        {
+          fontFamily: FONT,
+          '--slot-desktop': `${SCROLL.slotTop}vh`,
+          '--slot-phone': `${SCROLL.slotTopPhone}vh`,
+        } as React.CSSProperties
+      }
+    >
+      {fluidCursor && <FluidCursor />}
+
+      {/* Sticky header (see HEADER). Starts hidden: strip and wordmark above
+          the viewport, link slots invisible until the hero links land on them. */}
+      <div className="pointer-events-none fixed inset-x-0 top-0 z-40 text-[1.7vw] leading-none font-medium tracking-[-0.03em] max-md:text-[16px]">
+        <div
+          ref={stripRef}
+          className="absolute inset-0 bg-[#f1f1ef] will-change-transform"
+          style={{transform: 'translateY(-100%)'}}
+        />
+        <div className="relative grid grid-cols-[1fr_auto_1fr] items-center px-[4vw] py-[1.8vh] max-md:py-[2.4vh] md:px-[1.6vw]">
+          <nav className="hidden gap-[3.2vw] md:flex">{links.slice(0, half).map(barLink)}</nav>
+          <span className="block overflow-hidden">
+            <a
+              ref={barLogoRef}
+              href="#"
+              className="pointer-events-auto block text-[2.6vw] font-black tracking-[-0.03em] will-change-transform max-md:text-[28px]"
+              style={{...LOGO_STYLE, transform: 'translateY(-110%)'}}
+            >
+              {brand}
+            </a>
+          </span>
+          <nav className="hidden justify-end gap-[3.2vw] md:flex">
+            {links.slice(half).map((link, i) => barLink(link, half + i))}
+          </nav>
+          {/* Phones: the menu button lives here (fixed), so it sits in the hero
+              header at the top and stays put once the strip has slid in. */}
+          <button
+            type="button"
+            ref={collect}
+            aria-label="Open menu"
+            onClick={() => setMenuOpen(true)}
+            className="pointer-events-auto col-start-3 flex h-[28px] w-[28px] flex-col items-end justify-center gap-[6px] justify-self-end md:hidden"
+          >
+            <span className="block h-[1.5px] w-[24px] bg-current" />
+            <span className="block h-[1.5px] w-[16px] bg-current" />
+          </button>
+        </div>
+      </div>
+
+      {/* Phone menu: full-screen sheet with every link. */}
+      <div
+        ref={menuRef}
+        className="invisible fixed inset-0 z-50 flex flex-col bg-[#111] px-[4vw] pt-[2.4vh] pb-[6vh] text-[#f1f1ef] will-change-[clip-path] md:hidden"
+        aria-hidden={!menuOpen}
+      >
+        <div ref={collectMenuItem} className="grid grid-cols-[1fr_auto_1fr] items-center">
+          <span
+            className="col-start-2 text-[28px] leading-none font-black tracking-[-0.03em]"
+            style={LOGO_STYLE}
+          >
+            {brand}
+          </span>
+          <button
+            type="button"
+            aria-label="Close menu"
+            onClick={() => setMenuOpen(false)}
+            className="relative col-start-3 h-[28px] w-[28px] justify-self-end"
+          >
+            <span className="absolute top-1/2 left-1/2 h-[1.5px] w-[24px] -translate-1/2 rotate-45 bg-current" />
+            <span className="absolute top-1/2 left-1/2 h-[1.5px] w-[24px] -translate-1/2 -rotate-45 bg-current" />
+          </button>
+        </div>
+        <nav className="mt-auto flex flex-col gap-[2.2vh] text-[11vw] leading-none font-medium tracking-[-0.03em]">
+          {links.map((link, i) => (
+            <a
+              key={link.label}
+              ref={collectMenuItem}
+              href={link.href ?? '#'}
+              onClick={() => setMenuOpen(false)}
+              className="flex items-start gap-[2vw]"
+            >
+              <span
+                className="mt-[0.25em] text-[0.32em] font-light tabular-nums"
+                style={{fontFamily: FONT_INDEX}}
+              >
+                {String(i + 1).padStart(2, '0')}
+              </span>
+              {link.label}
+            </a>
+          ))}
+        </nav>
+        <p ref={collectMenuItem} className="mt-[5vh] text-[12px] leading-[1.4] text-[#8a8a8a]">
+          {location.lead} {location.place}
+          <br />
+          {tagline[0]} · {tagline[1]}
+        </p>
+      </div>
+
+      <section
+        className="relative overflow-hidden"
+        style={{
+          // Ends SCROLL.gap under the grown image. Keep
+          // endHeight + gap ≥ 100svh − endAt so the image can reach endAt.
+          height: `calc(var(--slot) + ${SCROLL.endHeight} + ${SCROLL.gap})`,
+        }}
+      >
+        {/* The hero: one viewport; the visual hangs below it. */}
+        <div ref={stageRef} className="relative h-svh">
+          {/* Intro backdrop: black page + the white plate, sized by an invisible
+          copy of the wordmark so it always matches the real one above. */}
+          <div
+            ref={introLayerRef}
+            className="pointer-events-none absolute inset-0 z-10 grid place-items-center bg-black will-change-[opacity]"
+          >
+            <span
+              className="relative leading-none font-black tracking-[-0.03em]"
+              style={{...LOGO_STYLE, fontSize: INTRO.logoSize}}
+            >
+              <span
+                ref={plateRef}
+                className="absolute bg-white opacity-0 will-change-transform"
+                style={{
+                  top: `calc(${INTRO.platePadY} * -1)`,
+                  bottom: `calc(${INTRO.platePadY} * -1)`,
+                  left: `calc(${INTRO.platePadX} * -1)`,
+                  right: `calc(${INTRO.platePadX} * -1)`,
+                }}
+              />
+              <span aria-hidden className="invisible">
+                {brand}
+              </span>
+            </span>
+          </div>
+
+          {/* Intro wordmark: black, so it only shows where the plate is behind it. */}
+          <div className="pointer-events-none absolute inset-0 z-20 grid place-items-center">
+            <span
+              ref={introLogoRef}
+              className="leading-none font-black tracking-[-0.03em] text-black opacity-0 will-change-transform"
+              style={{...LOGO_STYLE, fontSize: INTRO.logoSize}}
+            >
+              {brand}
+            </span>
+          </div>
+
+          {/* Top bar */}
+          <header
+            ref={headerRef}
+            className="grid grid-cols-[1fr_auto_1fr] items-start px-[4vw] pt-[2.4vh] text-[1.15vw] leading-[1.2] font-normal max-md:items-center max-md:gap-[3vw] max-md:text-[10px] max-md:leading-[1.3] md:px-[1.6vw] md:pt-[3.2vh]"
+          >
+            <p ref={collect} className="will-change-[transform,opacity]">
+              {location.lead}{' '}
+              <span className="underline underline-offset-[0.2em] decoration-1">
+                {location.place}
+              </span>
+              <span className="max-md:hidden">
+                <br />
+                {location.line2}
+              </span>
+            </p>
+            <a
+              ref={headerLogoRef}
+              href="#"
+              className="relative z-30 text-[2.9vw] leading-none font-black tracking-[-0.03em] max-md:text-[28px]"
+              style={LOGO_STYLE}
+            >
+              {brand}
+            </a>
+            <p ref={collect} className="text-right will-change-[transform,opacity] max-md:hidden">
+              {tagline[0]}
+              <br />
+              {tagline[1]}
+            </p>
+          </header>
+
+          {/* Headline */}
+          <h1 className="relative z-20 mt-[6vh] text-center text-[12.5vw] leading-[0.86] md:mt-[10vh] md:text-[9.6vw] font-semibold tracking-[-0.075em] uppercase [-webkit-text-stroke:0.012em_currentColor]">
+            <MaskedLines lines={title} register={collectTitle} />
+          </h1>
+
+          {/* Phones: the header's tagline, centred under the headline. */}
+          <p
+            ref={collect}
+            className="mt-[3.5vh] text-center text-[12px] leading-[1.35] will-change-[transform,opacity] md:hidden"
+          >
+            {tagline[0]}
+            <br />
+            {tagline[1]}
+          </p>
+
+          {/* Nav */}
+          <nav
+            ref={navRef}
+            className="absolute inset-x-0 top-[62vh] flex items-baseline justify-between px-[2.4vw] text-[2.55vw] leading-none font-medium tracking-[-0.03em] max-md:hidden"
+          >
+            {links.map((link, i) => (
+              <a
+                key={link.label}
+                ref={collectHeroLink}
+                data-flip-id={`link-${i}`}
+                href={link.href ?? '#'}
+                className="group flex items-start gap-[0.9vw] will-change-[transform,opacity]"
+              >
+                <span
+                  className="mt-[0.25em] text-[0.36em] font-light tabular-nums"
+                  style={{fontFamily: FONT_INDEX}}
+                >
+                  {String(i + 1).padStart(2, '0')}
+                </span>
+                <RollingLabel text={link.label} />
+              </a>
+            ))}
+          </nav>
+
+          {/* Bottom row: copy | visual | copy */}
+          <div
+            ref={rowRef}
+            className="absolute inset-x-0 grid grid-cols-[1fr_38.4vw_1fr] items-start max-md:grid-cols-[1fr_84vw_1fr]"
+            style={{top: 'var(--slot)'}}
+          >
+            <p
+              ref={(el) => {
+                if (el) copyRefs.current[0] = el
+              }}
+              className="mx-auto text-center text-[1.35vw] leading-tight font-light tracking-[-0.03em] will-change-[opacity] max-md:hidden"
+            >
+              <MaskedLines lines={leftCopy} register={collectCopy} />
+            </p>
+
+            {/* Visual: peeks up from the bottom edge, grows on scroll to the header's
+            width — it overflows its column evenly, so the copy never moves. */}
+            <img
+              ref={imageRef}
+              src={image}
+              alt=""
+              className="z-30 col-start-2 h-[45vh] w-[38.4vw] max-w-none justify-self-center max-md:w-[84vw] bg-[#e6e6e3] object-cover will-change-[transform,width,height]"
+            />
+
+            <p
+              ref={(el) => {
+                if (el) copyRefs.current[1] = el
+              }}
+              className="mx-auto text-center text-[1.35vw] leading-tight font-light tracking-[-0.03em] will-change-[opacity] max-md:hidden"
+            >
+              <MaskedLines lines={rightCopy} register={collectCopy} />
+            </p>
+          </div>
+        </div>
+      </section>
+
+      {/* Intro: label + heading | the statement. Text is revealed line by line on scroll. */}
+      <section
+        ref={introSectionRef}
+        className="grid gap-[4vw] px-[4vw] md:grid-cols-2 md:px-[1.6vw]"
+        style={{paddingBottom: SCROLL.gap}}
+      >
+        <div>
+          <p className="flex items-center gap-[0.6vw] text-[1.15vw] text-[#8a8a8a] max-md:gap-[2vw] max-md:text-[12px]">
+            <span className="size-[0.7vw] rounded-full bg-[#111] max-md:size-[7px]" />
+            <span ref={collectIntroText} className="block">
+              {intro.label}
+            </span>
+          </p>
+          <h2
+            ref={collectIntroText}
+            className="mt-[1vh] text-[1.7vw] font-medium tracking-[-0.03em] max-md:text-[18px]"
+          >
+            {intro.heading}
+          </h2>
+        </div>
+        <p
+          ref={collectIntroText}
+          className="text-[2.55vw] leading-[1.18] font-normal tracking-[-0.035em] max-md:text-[22px]"
+        >
+          {intro.lead}
+        </p>
+      </section>
+    </div>
+  )
+}

@@ -1,0 +1,18 @@
+/* Split Screen Showreel Slider Styles */
+.split-screen-slider {
+  --mfa-edge: clamp(14px, 2.2vh, 30px);
+  --mfa-gutter: clamp(16px, 2.2vw, 44px);
+  --mfa-micro: clamp(9px, 0.72vw, 13px);
+  --mfa-overscan: 16%;
+  --mfa-title-leading: 0.82;
+  --mfa-title-look: 11.5cqw;
+  --mfa-veil: 0.58;
+}
+
+@media (max-width: 700px) {
+  .split-screen-slider {
+    --mfa-micro: 10px;
+    --mfa-title-leading: 0.86;
+    --mfa-title-look: 18cqw;
+  }
+}
