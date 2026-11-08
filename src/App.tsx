@@ -14,7 +14,6 @@ import CartDrawer from './components/CartDrawer';
 import AIChat from './components/AIChat';
 import OrderTracker from './components/OrderTracker';
 import NotificationManager from './components/NotificationManager';
-import FluidCursor from './components/FluidCursor';
 import SmoothScroll from './components/SmoothScroll';
 import CreativeStudioHero from './components/CreativeStudioHero';
 import BranchLocations from './components/BranchLocations';
@@ -705,26 +704,34 @@ export default function App() {
                 theme={theme}
               />
               
-              {/* Bespoke Creative Studio Hero & Showcase with proper distance and minimal elegance */}
-              <div className="relative w-full my-16 sm:my-28">
+              {/* Bespoke Creative Studio Hero & Showcase with generous distance */}
+              <div className="relative w-full my-20 sm:my-32 md:my-40">
                 <CreativeStudioHero onNavigate={handleNavigate} />
               </div>
 
-              {/* Editorial Text Bridge with generous gap before scroll animation */}
-              <EditorialTextBridge onNavigate={handleNavigate} />
+              {/* Editorial Text Bridge with generous distance before scroll showreel */}
+              <div className="relative w-full my-20 sm:my-32 md:my-40">
+                <EditorialTextBridge onNavigate={handleNavigate} />
+              </div>
               
-              {/* Pinned Split-Screen Reel Showreel */}
-              <SplitScreenSlider onNavigate={handleNavigate} />
+              {/* Pinned Split-Screen Reel Showreel with generous distance */}
+              <div className="relative w-full my-20 sm:my-32 md:my-40">
+                <SplitScreenSlider onNavigate={handleNavigate} />
+              </div>
               
-              {/* Editorial Outro with generous gap and curated catalogue introduction */}
-              <EditorialSliderOutro onNavigate={handleNavigate} />
+              {/* Editorial Outro with generous distance and curated catalogue introduction */}
+              <div className="relative w-full my-20 sm:my-32 md:my-40">
+                <EditorialSliderOutro onNavigate={handleNavigate} />
+              </div>
 
               {/* Complete Home Editorial Sections with generous breathing room */}
-              <HomeEditorialSections
-                onNavigate={handleNavigate}
-                onAddToCart={handleAddFeaturedItem}
-                addedItemId={recentlyAddedId}
-              />
+              <div className="relative w-full my-20 sm:my-32 md:my-40">
+                <HomeEditorialSections
+                  onNavigate={handleNavigate}
+                  onAddToCart={handleAddFeaturedItem}
+                  addedItemId={recentlyAddedId}
+                />
+              </div>
             </motion.div>
           )}
 
@@ -1143,9 +1150,6 @@ export default function App() {
           }, 100);
         }} 
       />
-
-      {/* GPU Fluid Cursor Solver with difference ink swirls */}
-      <FluidCursor />
 
     </div>
   );

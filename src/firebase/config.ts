@@ -37,13 +37,7 @@ const getSafeApiKey = (): string => {
   if (baseFirebaseConfig && (baseFirebaseConfig as any).apiKey && (baseFirebaseConfig as any).apiKey.length > 0) {
     return (baseFirebaseConfig as any).apiKey;
   }
-  try {
-    return typeof atob === 'function'
-      ? atob('QUl6YVN5RFdObE94cFFUaWFQQ0dGbjV5RlhNVTYzR3p4UWRIdGNRA==')
-      : Buffer.from('QUl6YVN5RFdObE94cFFUaWFQQ0dGbjV5RlhNVTYzR3p4UWRIdGNRA==', 'base64').toString();
-  } catch {
-    return '';
-  }
+  return '';
 };
 
 // Support both static JSON and Netlify/Vite environment variables

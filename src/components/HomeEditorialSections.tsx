@@ -174,46 +174,162 @@ export default function HomeEditorialSections({
         </div>
       </section>
 
-      {/* ================= 3. BRAND STORY PREVIEW ================= */}
-      <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-12">
-        <div className="bg-brand-sugar border border-brand-caramel/15 p-8 sm:p-14 lg:p-16 rounded-xs grid grid-cols-1 lg:grid-cols-12 gap-10 items-center">
-          <div className="lg:col-span-6 space-y-6">
-            <div className="flex items-center gap-2 text-xs uppercase tracking-[0.22em] font-medium text-brand-caramel">
-              <span>Bakehouse Heritage</span>
-              <span aria-hidden="true" className="text-brand-honey">·</span>
-              <span>Our Story</span>
+      {/* ================= 3. OUR STORY SECTION ================= */}
+      <section id="our-story" className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-12 scroll-mt-24">
+        <motion.div 
+          initial={{ opacity: 0, y: 50 }}
+          whileInView={{ opacity: 1, y: 0 }}
+          viewport={{ once: true, margin: "-100px" }}
+          transition={{ duration: 0.9, ease: [0.16, 1, 0.3, 1] }}
+          className="relative bg-[#FCFAF8] border border-brand-caramel/25 p-8 sm:p-14 lg:p-20 rounded-3xl overflow-hidden shadow-xl"
+        >
+          {/* Subtle Ambient Light Image in Background */}
+          <div className="pointer-events-none absolute inset-0 select-none overflow-hidden" aria-hidden="true">
+            <img
+              src="/assets/images/hero_editorial_muffin_1794039141433.jpg"
+              alt=""
+              className="w-full h-full object-cover opacity-[0.07] scale-105 filter blur-[0.5px]"
+              loading="lazy"
+            />
+            {/* Subtle radial warmth & vignette overlay */}
+            <div className="absolute inset-0 bg-gradient-to-br from-[#FCFAF8]/90 via-[#FCFAF8]/70 to-[#FCFAF8]/95" />
+            <div className="absolute inset-0 bg-radial from-brand-caramel/10 via-transparent to-transparent opacity-80" />
+          </div>
+
+          {/* Watermark Heritage Architectural Graphic Design */}
+          <div 
+            className="pointer-events-none absolute -bottom-16 -right-12 select-none overflow-hidden opacity-[0.04] text-[#21100B]" 
+            aria-hidden="true"
+          >
+            <span className="font-serif text-[22vw] font-black leading-none tracking-tighter uppercase block">
+              1988
+            </span>
+          </div>
+
+          <div 
+            className="pointer-events-none absolute -top-20 -left-16 select-none overflow-hidden opacity-[0.035] text-brand-caramel" 
+            aria-hidden="true"
+          >
+            <span className="font-serif text-[18vw] font-black leading-none tracking-tighter uppercase block">
+              MUFFINS
+            </span>
+          </div>
+
+          <div className="relative z-10 max-w-5xl mx-auto space-y-10 sm:space-y-12">
+            
+            {/* Header Kicker Badge & Title with Scroll Reveal */}
+            <motion.div
+              initial={{ opacity: 0, y: 25 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              viewport={{ once: true }}
+              transition={{ duration: 0.7, delay: 0.1 }}
+              className="space-y-4"
+            >
+              <div className="inline-flex items-center gap-2.5 px-4 py-1.5 rounded-full bg-brand-sugar border border-brand-caramel/30 text-brand-caramel text-xs font-mono uppercase tracking-[0.25em] font-bold shadow-xs">
+                <span className="size-2 rounded-full bg-brand-caramel animate-pulse" />
+                <span>Bakehouse Heritage</span>
+                <span aria-hidden="true" className="text-brand-honey">·</span>
+                <span>Our Story</span>
+              </div>
+
+              <h2 className="font-serif text-3xl sm:text-5xl lg:text-6xl text-[#21100B] font-black tracking-[-0.03em] leading-[1.1]">
+                A World of Taste Under One Roof.
+              </h2>
+            </motion.div>
+
+            {/* Main Narrative Paragraphs — matching the exact selected text font, size, and styling */}
+            <div className="space-y-8 text-[#21100B] font-serif font-normal">
+              
+              {/* Paragraph 1 */}
+              <motion.p
+                initial={{ opacity: 0, y: 25 }}
+                whileInView={{ opacity: 1, y: 0 }}
+                viewport={{ once: true }}
+                transition={{ duration: 0.7, delay: 0.2 }}
+                className="text-lg sm:text-xl md:text-2xl lg:text-[1.85rem] leading-[1.4] tracking-[-0.02em] text-[#21100B]/90 font-serif"
+              >
+                At <strong className="font-bold text-[#E94F16] font-serif">Muffins Sweets & Bakers</strong>, we believe that food is more than just something to enjoy — it is part of the moments we remember, the celebrations we share, and the little pleasures that make everyday life special. Rooted in the heart of Bahawalpur, Muffins brings together a world of taste under one roof, offering an experience that goes far beyond the ordinary bakery.
+              </motion.p>
+
+              {/* Paragraph 2 & 3 in a refined 2-column grid */}
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-8 lg:gap-12 pt-2">
+                <motion.div
+                  initial={{ opacity: 0, y: 25 }}
+                  whileInView={{ opacity: 1, y: 0 }}
+                  viewport={{ once: true }}
+                  transition={{ duration: 0.7, delay: 0.3 }}
+                  className="space-y-3"
+                >
+                  <span className="text-xs font-mono uppercase tracking-widest text-brand-caramel font-bold flex items-center gap-2">
+                    <span className="w-6 h-[1.5px] bg-brand-caramel" />
+                    Variety & Flavour
+                  </span>
+                  <p className="text-base sm:text-lg md:text-xl leading-[1.45] tracking-[-0.01em] text-[#32140D]/85 font-serif">
+                    From the richness of beautifully crafted cakes and brownies to the familiar comfort of traditional sweets, from freshly prepared savoury favourites to satisfying meals and everyday treats, there is something for every mood, every craving, and every occasion.
+                  </p>
+                </motion.div>
+
+                <motion.div
+                  initial={{ opacity: 0, y: 25 }}
+                  whileInView={{ opacity: 1, y: 0 }}
+                  viewport={{ once: true }}
+                  transition={{ duration: 0.7, delay: 0.4 }}
+                  className="space-y-3"
+                >
+                  <span className="text-xs font-mono uppercase tracking-widest text-brand-caramel font-bold flex items-center gap-2">
+                    <span className="w-6 h-[1.5px] bg-brand-caramel" />
+                    Bringing People Together
+                  </span>
+                  <p className="text-base sm:text-lg md:text-xl leading-[1.45] tracking-[-0.01em] text-[#32140D]/85 font-serif">
+                    Our identity is built around variety, flavour, and the joy of bringing people together — whether it is a family celebration, a gathering with friends, a special moment worth remembering, or simply a visit for something delicious. We bring together familiar favourites and exciting choices in one welcoming destination, where every visit offers something to discover.
+                  </p>
+                </motion.div>
+              </div>
+
+              {/* Highlighted Core Manifesto Quote */}
+              <motion.div
+                initial={{ opacity: 0, scale: 0.98, y: 20 }}
+                whileInView={{ opacity: 1, scale: 1, y: 0 }}
+                viewport={{ once: true }}
+                transition={{ duration: 0.8, delay: 0.45 }}
+                className="relative mt-8 p-6 sm:p-10 rounded-2xl bg-gradient-to-r from-brand-caramel/[0.08] via-brand-sugar to-brand-caramel/[0.04] border-l-4 border-brand-caramel border-y border-r border-brand-caramel/20 shadow-xs"
+              >
+                <p className="text-xl sm:text-2xl md:text-3xl lg:text-[2.2rem] leading-[1.3] font-serif font-black tracking-[-0.03em] text-[#21100B]">
+                  <strong>Muffins Sweets & Bakers is not just about what you take home; it is about the experiences, connections, and memories that come with every visit.</strong>
+                </p>
+                <p className="mt-4 text-base sm:text-lg md:text-xl text-brand-caramel font-serif italic tracking-wide">
+                  A place for every taste, every occasion, and every little moment worth making special.
+                </p>
+              </motion.div>
+
             </div>
 
-            <h2 className="font-serif text-3xl sm:text-4xl text-brand-chocolate font-normal tracking-tight leading-tight">
-              Honoring Bahawalpur's Sweets Since Generation Past.
-            </h2>
-
-            <p className="text-sm sm:text-base text-brand-chocolate/75 leading-relaxed font-sans">
-              Founded with deep reverence for traditional Pakistani halwas and French pastry discipline, Muffinns has evolved into Bahawalpur’s premier bakery. We still peel every pistachio by hand and simmer our desi ghee sweets in heavy copper cauldrons.
-            </p>
-
-            <div className="pt-2">
+            {/* Actions & Exploration Footer */}
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              viewport={{ once: true }}
+              transition={{ duration: 0.6, delay: 0.5 }}
+              className="pt-4 flex flex-wrap items-center gap-4"
+            >
               <button
-                onClick={() => onNavigate('story')}
-                className="inline-flex items-center gap-2.5 px-6 py-3 bg-brand-chocolate text-brand-cream hover:bg-brand-caramel transition-colors font-sans text-xs uppercase tracking-widest font-semibold rounded-xs shadow-xs cursor-pointer group"
+                onClick={() => onNavigate('menu')}
+                className="inline-flex items-center gap-2.5 px-7 py-3.5 bg-brand-chocolate text-brand-cream hover:bg-brand-caramel transition-colors font-sans text-xs uppercase tracking-widest font-semibold rounded-xs shadow-xs cursor-pointer group"
               >
-                <span>Read The Full Story</span>
+                <span>Explore The Bakery Collection</span>
                 <ArrowRight className="w-4 h-4 transition-transform duration-300 group-hover:translate-x-1" />
               </button>
-            </div>
-          </div>
 
-          <div className="lg:col-span-6">
-            <div className="relative aspect-[4/3] overflow-hidden rounded-xs border border-brand-caramel/15">
-              <img
-                src="/assets/images/muffinns_sohan_halwa_1784731966653.jpg"
-                alt="Traditional heritage halwa and confectionery"
-                className="w-full h-full object-cover"
-                loading="lazy"
-              />
-            </div>
+              <button
+                onClick={() => onNavigate('story')}
+                className="inline-flex items-center gap-2.5 px-6 py-3.5 bg-transparent text-brand-chocolate hover:text-brand-caramel border border-brand-chocolate/20 hover:border-brand-caramel transition-colors font-sans text-xs uppercase tracking-widest font-semibold rounded-xs cursor-pointer group"
+              >
+                <span>View Full Heritage Archive</span>
+              </button>
+            </motion.div>
+
           </div>
-        </div>
+        </motion.div>
       </section>
 
       {/* ================= 4. LOCATION & CONTACT PREVIEW ================= */}

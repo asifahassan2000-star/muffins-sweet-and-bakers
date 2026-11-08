@@ -11,7 +11,7 @@ gsap.registerPlugin(SplitText, CustomEase, useGSAP);
 /* ------------------------------------------------------------------ */
 /*  Bakery Imagery Configuration                                      */
 /* ------------------------------------------------------------------ */
-export const HERO_IMAGE = '/assets/images/hero_editorial_muffin_1794039141433.jpg';
+export const HERO_IMAGE = 'https://ik.imagekit.io/asifa/760b2436-29f4-41fc-8ec6-35cdacdb3dfd.png';
 
 // 7 warm, artisan bakery photos for the preloader fan.
 // The LAST one lands in the centre and unveils to full screen (seamless hand-off).
@@ -512,10 +512,10 @@ export default function Hero({ onNavigate, onOpenOrderNow, onOpenSidebar, onOpen
     >
       {/* ---------- Top Editorial Navbar ---------- */}
       <header
-        className={`fixed inset-x-0 top-0 z-[60] flex items-center justify-between px-4 py-3.5 sm:px-6 sm:py-4 md:px-8 md:py-4.5 text-brand-chocolate transition-all duration-300 ${
+        className={`fixed inset-x-0 top-0 z-[60] flex items-center justify-between px-4 py-3.5 sm:px-6 sm:py-4 md:px-8 md:py-4.5 text-[#21100B] transition-all duration-300 shadow-sm ${
           scrolled
-            ? 'bg-brand-cream/92 backdrop-blur-md border-b border-brand-caramel/15 shadow-lg'
-            : 'bg-gradient-to-b from-brand-cream/80 via-brand-cream/30 to-transparent'
+            ? 'bg-white/95 backdrop-blur-md border-b border-[#32140D]/10 shadow-md'
+            : 'bg-white/90 backdrop-blur-md border-b border-[#32140D]/10'
         }`}
       >
         <button
@@ -525,10 +525,10 @@ export default function Hero({ onNavigate, onOpenOrderNow, onOpenSidebar, onOpen
           className="relative z-10 flex items-center gap-2.5 text-[17px] font-bold tracking-tight text-left cursor-pointer focus:outline-none"
         >
           <MuffinnsLogo size={32} animated={false} />
-          <span className="font-serif text-xl sm:text-2xl font-black text-brand-chocolate tracking-tight">
+          <span className="font-serif text-xl sm:text-2xl font-black text-[#21100B] tracking-tight">
             {brand}
           </span>
-          <span className="font-serif text-xs font-bold text-brand-caramel" dir="rtl">
+          <span className="font-serif text-xs font-bold text-[#E94F16]" dir="rtl">
             پتاشے
           </span>
         </button>
@@ -537,13 +537,13 @@ export default function Hero({ onNavigate, onOpenOrderNow, onOpenSidebar, onOpen
           ref={setNavRef(1)}
           style={hidden}
           aria-label="Primary"
-          className="hidden items-center gap-7 text-[12px] font-mono uppercase tracking-[0.16em] text-brand-chocolate/85 lg:flex"
+          className="hidden items-center gap-7 text-[12px] font-mono uppercase tracking-[0.16em] text-[#21100B]/85 lg:flex"
         >
           {links.map((l) => (
             <button
               key={l.label}
               onClick={() => onNavigate(l.view)}
-              className="transition-colors duration-200 hover:text-brand-caramel cursor-pointer font-bold py-1"
+              className="transition-colors duration-200 hover:text-[#E94F16] cursor-pointer font-bold py-1"
             >
               {l.label}
             </button>
@@ -556,13 +556,13 @@ export default function Hero({ onNavigate, onOpenOrderNow, onOpenSidebar, onOpen
             ref={setNavRef(2)}
             style={hidden}
             onClick={() => (onOpenCart ? onOpenCart() : onOpenOrderNow ? onOpenOrderNow() : onNavigate('menu'))}
-            className="rounded-xs bg-brand-caramel px-3 py-2 sm:px-4 sm:py-2.5 text-[11px] sm:text-[12px] font-mono uppercase font-bold tracking-[0.12em] text-brand-cream transition-all duration-300 hover:bg-brand-honey shadow-sm cursor-pointer flex items-center gap-1.5 focus:outline-none"
+            className="rounded-xs bg-[#E94F16] hover:bg-[#d64511] px-3 py-2 sm:px-4 sm:py-2.5 text-[11px] sm:text-[12px] font-mono uppercase font-bold tracking-[0.12em] text-white transition-all duration-300 shadow-sm cursor-pointer flex items-center gap-1.5 focus:outline-none"
             aria-label={`Shopping Bag (${cartCount} items)`}
           >
             <ShoppingBag className="w-3.5 h-3.5" />
             <span>Bag</span>
             {cartCount > 0 && (
-              <span className="ml-0.5 rounded-full bg-brand-chocolate px-1.5 py-0.2 text-[10px] text-brand-cream font-bold tabular-nums">
+              <span className="ml-0.5 rounded-full bg-[#21100B] px-1.5 py-0.2 text-[10px] text-white font-bold tabular-nums">
                 {cartCount}
               </span>
             )}
@@ -576,7 +576,7 @@ export default function Hero({ onNavigate, onOpenOrderNow, onOpenSidebar, onOpen
             aria-expanded={open}
             aria-label="Open complete bakery menu"
             onClick={() => (onOpenSidebar ? onOpenSidebar() : setOpen((v) => !v))}
-            className="flex h-8 sm:h-9 items-center gap-1.5 sm:gap-2 px-2.5 sm:px-3 rounded-xs border border-brand-caramel/30 text-brand-chocolate hover:bg-brand-caramel/10 transition-colors cursor-pointer focus:outline-none"
+            className="flex h-8 sm:h-9 items-center gap-1.5 sm:gap-2 px-2.5 sm:px-3 rounded-xs border border-[#32140D]/20 text-[#21100B] hover:bg-[#32140D]/5 transition-colors cursor-pointer focus:outline-none"
           >
             <Menu className="w-4 h-4" />
             <span className="text-[11px] sm:text-xs font-mono font-bold tracking-widest uppercase">Menu</span>
@@ -689,16 +689,6 @@ export default function Hero({ onNavigate, onOpenOrderNow, onOpenSidebar, onOpen
           className="absolute inset-0 z-20 flex flex-col items-center justify-center px-6 text-center opacity-0 pointer-events-none invisible"
         >
           <div className="w-full max-w-7xl mx-auto px-4 sm:px-8 space-y-4 sm:space-y-6 text-center">
-            {/* Elegant unboxed editorial brand crest in dark brown/black */}
-            <div 
-              ref={badgeRef}
-              className="text-xs sm:text-sm font-mono uppercase tracking-[0.35em] text-[#21100B] font-bold flex items-center justify-center gap-3"
-            >
-              <span className="w-1.5 h-1.5 rounded-full bg-[#21100B]" />
-              <span>Atelier 1988 · Artisanal Bakehouse & Heritage Patisserie</span>
-              <span className="w-1.5 h-1.5 rounded-full bg-[#21100B]" />
-            </div>
-
             {/* Deep Dark Brown and Black Heading — Bold, Minimal, High Contrast */}
             <h1
               ref={titleRef}
@@ -709,15 +699,6 @@ export default function Hero({ onNavigate, onOpenOrderNow, onOpenSidebar, onOpen
             >
               {title}
             </h1>
-
-            {/* Minimal Dark Divider Line — No Green */}
-            <div className="flex items-center justify-center gap-3 sm:gap-4 py-1" aria-hidden="true">
-              <span className="h-px w-16 sm:w-32 bg-gradient-to-r from-transparent via-[#21100B]/30 to-transparent" />
-              <span className="font-handwriting text-lg sm:text-2xl text-[#21100B] font-bold tracking-wide">
-                ✦ slow-baked heritage recipes & fresh morning ovens ✦
-              </span>
-              <span className="h-px w-16 sm:w-32 bg-gradient-to-l from-transparent via-[#21100B]/30 to-transparent" />
-            </div>
 
             {/* Clean unboxed subtitle in dark brown / black extending across the screen */}
             {subtitle && (

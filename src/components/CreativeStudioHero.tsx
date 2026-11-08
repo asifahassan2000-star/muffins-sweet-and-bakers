@@ -134,15 +134,17 @@ const DEFAULT_INTRO: StudioIntro = {
 function MaskedLines({
   lines,
   register,
+  className = '',
 }: {
   lines: string[];
   register: (el: HTMLElement | null) => void;
+  className?: string;
 }) {
   return lines.map((line) => (
     <span key={line} className="block overflow-hidden">
       <span
         ref={register}
-        className="block will-change-transform [backface-visibility:hidden]"
+        className={`block will-change-transform [backface-visibility:hidden] ${className}`}
         style={{ transform: 'translateY(105%)' }}
       >
         {line}
@@ -223,7 +225,8 @@ export default function CreativeStudioHero({
   const headerLogoRef = useRef<any>(null);
   const stageRef = useRef<HTMLDivElement>(null);
   const rowRef = useRef<HTMLDivElement>(null);
-  const introSectionRef = useRef<HTMLElement>(null);
+  const introSectionRef = useRef<HTMLDivElement>(null);
+  const imageOverlayRef = useRef<HTMLDivElement>(null);
   const introTextRefs = useRef<HTMLElement[]>([]);
   const imageRef = useRef<HTMLImageElement>(null);
   const copyRefs = useRef<HTMLParagraphElement[]>([]);
@@ -340,111 +343,112 @@ export default function CreativeStudioHero({
         return;
       }
 
-      // Scroll timeline: Image grows cleanly to width on scroll
-      gsap
-        .timeline({
-          scrollTrigger: {
-            trigger: row,
-            start: () => `top ${(row.offsetTop / stage.offsetHeight) * 100}%`,
-            end: `top ${SCROLL.endAt}`,
-            scrub: SCROLL.scrub,
-            invalidateOnRefresh: true,
-          },
-          defaults: { ease: 'none' },
-        })
+      // Pinned stage for continuous smooth image zoom to proper proportion and connected intro text arrival
+      const zoomTl = gsap.timeline({
+        scrollTrigger: {
+          trigger: stage,
+          start: 'top top',
+          end: '+=130%',
+          pin: true,
+          pinSpacing: true,
+          scrub: 1.2,
+          invalidateOnRefresh: true,
+          anticipatePin: 1,
+        },
+        defaults: { ease: 'power1.inOut' },
+      });
+
+      // Prepare connected next text section initial state
+      gsap.set(introSection, { yPercent: 110, opacity: 0 });
+      gsap.set(introTextRefs.current, { y: 25, opacity: 0 });
+
+      zoomTl
         .to(
-          visual,
+          header,
           {
-            width: () => {
-              const cs = getComputedStyle(header);
-              return header.clientWidth - parseFloat(cs.paddingLeft) - parseFloat(cs.paddingRight);
-            },
-            height: SCROLL.endHeight,
-            duration: 1,
+            opacity: 0,
+            y: -25,
+            duration: 0.3,
           },
           0,
         )
-        .to(copyRefs.current, { opacity: 0, duration: SCROLL.fadeLength }, SCROLL.fadeAt);
-
-      // Sticky header transitions on scroll
-      const nav = navRef.current;
-      const strip = stripRef.current;
-      const barLogo = barLogoRef.current;
-      const compact = window.matchMedia('(max-width: 767px)').matches;
-
-      if (nav && strip && barLogo) {
-        const from = (i: number) => {
-          const hero = heroLinks.current[i];
-          const slot = barLinks.current[i];
-          if (!hero || !slot) return { x: 0, y: 0, scaleX: 1, scaleY: 1 };
-          const heroY = hero.offsetTop + hero.offsetHeight / 2 + window.innerHeight * HEADER.startAt;
-          return {
-            x: nav.offsetLeft + hero.offsetLeft + hero.offsetWidth / 2 - (slot.offsetLeft + slot.offsetWidth / 2),
-            y: heroY - (slot.offsetTop + slot.offsetHeight / 2),
-            scaleX: hero.offsetWidth / slot.offsetWidth,
-            scaleY: hero.offsetHeight / slot.offsetHeight,
-          };
-        };
-
-        let shown = false;
-        const headerTl = gsap.timeline({
-          defaults: { ease: 'none' },
-          scrollTrigger: {
-            trigger: compact ? row : nav,
-            start: `top ${HEADER.startAt * 100}%`,
-            end: 'top top',
-            scrub: HEADER.scrub,
-            invalidateOnRefresh: true,
-            onUpdate: (self) => {
-              const show = self.progress > 0;
-              if (show === shown || compact) return;
-              shown = show;
-              gsap.set(heroLinks.current, { autoAlpha: show ? 0 : 1 });
-              gsap.set(barLinks.current, { autoAlpha: show ? 1 : 0 });
-            },
+        .to(
+          lines,
+          {
+            opacity: 0,
+            y: -40,
+            duration: 0.35,
           },
-        });
-
-        if (!compact) {
-          barLinks.current.forEach((link, i) =>
-            headerTl.fromTo(
-              link,
-              {
-                x: () => from(i).x,
-                y: () => from(i).y,
-                scaleX: () => from(i).scaleX,
-                scaleY: () => from(i).scaleY,
-              },
-              { x: 0, y: 0, scaleX: 1, scaleY: 1, duration: 1 },
-              0,
-            ),
-          );
-        }
-
-        headerTl
-          .fromTo(strip, { yPercent: -100, y: 0 }, { yPercent: 0, duration: 1 - HEADER.stripAt }, HEADER.stripAt)
-          .fromTo(barLogo, { yPercent: -110, y: 0 }, { yPercent: 0, duration: 1 - HEADER.logoAt }, HEADER.logoAt);
-      }
-
-      // Intro text reveal
-      const split = SplitText.create(introTextRefs.current, {
-        type: 'lines',
-        mask: 'lines',
-        linesClass: 'will-change-transform [backface-visibility:hidden]',
-        autoSplit: true,
-        onSplit: (self) =>
-          gsap.from(self.lines, {
-            yPercent: 105,
-            duration: SCROLL.revealDuration,
-            stagger: SCROLL.revealStagger,
-            ease: SCROLL.revealEase,
-            scrollTrigger: { trigger: introSection, start: SCROLL.revealStart, once: true },
-          }),
-      });
+          0,
+        )
+        .to(
+          copyRefs.current,
+          {
+            opacity: 0,
+            y: -30,
+            duration: 0.35,
+          },
+          0,
+        )
+        // Zoom image smoothly to full screen
+        .to(
+          visual,
+          {
+            scale: () => (window.innerWidth < 768 ? 3.3 : 2.65),
+            y: () => (window.innerWidth < 768 ? '-12vh' : '-15vh'),
+            borderRadius: '0px',
+            borderWidth: '0px',
+            boxShadow: 'none',
+            duration: 0.8,
+            ease: 'power2.out',
+          },
+          0,
+        )
+        // Cinematic backdrop overlay for crystal clear typography on full screen image
+        .to(
+          imageOverlayRef.current,
+          {
+            opacity: 1,
+            duration: 0.65,
+            ease: 'power2.out',
+          },
+          0.2,
+        )
+        // Direct connection: Next text section smoothly comes on screen over the full screen image
+        .fromTo(
+          introSection,
+          {
+            yPercent: 110,
+            opacity: 0,
+          },
+          {
+            yPercent: 0,
+            opacity: 1,
+            duration: 0.65,
+            ease: 'power2.out',
+          },
+          0.3,
+        )
+        .fromTo(
+          introTextRefs.current,
+          {
+            y: 25,
+            opacity: 0,
+          },
+          {
+            y: 0,
+            opacity: 1,
+            stagger: 0.08,
+            duration: 0.5,
+            ease: 'power2.out',
+          },
+          0.45,
+        );
 
       if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
         gsap.set(introLayer, { autoAlpha: 0 });
         gsap.set([...lines, ...copy], { clearProps: 'all' });
+        gsap.set(introSection, { opacity: 1, yPercent: 0 });
         return;
       }
 
@@ -523,7 +527,7 @@ export default function CreativeStudioHero({
         );
 
       return () => {
-        split.revert();
+        zoomTl.kill();
         tl.kill();
       };
     },
@@ -561,7 +565,7 @@ export default function CreativeStudioHero({
   return (
     <div
       ref={root}
-      className="relative z-10 w-full bg-[#fdfbf9] text-[#21100B] my-16 sm:my-28 [--slot:var(--slot-desktop)] max-md:[--slot:var(--slot-phone)] border-t border-[#32140D]/10"
+      className="relative z-10 w-full bg-[#fdfbf9] text-[#21100B] rounded-3xl overflow-hidden shadow-xs border border-[#32140D]/10"
       style={
         {
           fontFamily: FONT,
@@ -570,102 +574,11 @@ export default function CreativeStudioHero({
         } as React.CSSProperties
       }
     >
-      {/* Sticky header */}
-      <div className="pointer-events-none fixed inset-x-0 top-0 z-40 text-[1.7vw] leading-none font-medium tracking-[-0.03em] max-md:text-[16px] text-[#21100B]">
-        <div
-          ref={stripRef}
-          className="absolute inset-0 bg-[#fdfbf9]/95 backdrop-blur-md border-b border-[#32140D]/10 will-change-transform"
-          style={{ transform: 'translateY(-100%)' }}
-        />
-        <div className="relative grid grid-cols-[1fr_auto_1fr] items-center px-[4vw] py-[1.8vh] max-md:py-[2.4vh] md:px-[2.4vw]">
-          <nav className="hidden gap-[3.2vw] md:flex">{links.slice(0, half).map(barLink)}</nav>
-          <span className="block overflow-hidden">
-            <button
-              type="button"
-              ref={barLogoRef}
-              onClick={() => onNavigate && onNavigate('home')}
-              className="pointer-events-auto block text-[2.6vw] font-black tracking-[-0.03em] will-change-transform max-md:text-[28px] text-[#21100B] cursor-pointer"
-              style={{ ...LOGO_STYLE, transform: 'translateY(-110%)' }}
-            >
-              {brand}
-            </button>
-          </span>
-          <nav className="hidden justify-end gap-[3.2vw] md:flex">
-            {links.slice(half).map((link, i) => barLink(link, half + i))}
-          </nav>
-          <button
-            type="button"
-            ref={collect}
-            aria-label="Open menu"
-            onClick={() => setMenuOpen(true)}
-            className="pointer-events-auto col-start-3 flex h-[28px] w-[28px] flex-col items-end justify-center gap-[6px] justify-self-end md:hidden text-[#21100B]"
-          >
-            <span className="block h-[1.5px] w-[24px] bg-current" />
-            <span className="block h-[1.5px] w-[16px] bg-current" />
-          </button>
-        </div>
-      </div>
 
-      {/* Phone menu sheet */}
-      <div
-        ref={menuRef}
-        className="invisible fixed inset-0 z-50 flex flex-col bg-[#21100B] px-[4vw] pt-[2.4vh] pb-[6vh] text-[#faf6f2] will-change-[clip-path] md:hidden"
-        aria-hidden={!menuOpen}
-      >
-        <div ref={collectMenuItem} className="grid grid-cols-[1fr_auto_1fr] items-center">
-          <span
-            className="col-start-2 text-[28px] leading-none font-black tracking-[-0.03em] text-[#faf6f2]"
-            style={LOGO_STYLE}
-          >
-            {brand}
-          </span>
-          <button
-            type="button"
-            aria-label="Close menu"
-            onClick={() => setMenuOpen(false)}
-            className="relative col-start-3 h-[28px] w-[28px] justify-self-end text-white cursor-pointer"
-          >
-            <span className="absolute top-1/2 left-1/2 h-[1.5px] w-[24px] -translate-1/2 rotate-45 bg-current" />
-            <span className="absolute top-1/2 left-1/2 h-[1.5px] w-[24px] -translate-1/2 -rotate-45 bg-current" />
-          </button>
-        </div>
-        <nav className="mt-auto flex flex-col gap-[2.2vh] text-[11vw] leading-none font-medium tracking-[-0.03em]">
-          {links.map((link, i) => (
-            <button
-              key={link.label}
-              type="button"
-              ref={collectMenuItem}
-              onClick={() => {
-                setMenuOpen(false);
-                handleLinkClick(link);
-              }}
-              className="flex items-start gap-[2vw] text-left text-[#faf6f2] hover:text-amber-200 cursor-pointer"
-            >
-              <span
-                className="mt-[0.25em] text-[0.32em] font-light tabular-nums text-stone-400"
-                style={{ fontFamily: FONT_INDEX }}
-              >
-                {String(i + 1).padStart(2, '0')}
-              </span>
-              {link.label}
-            </button>
-          ))}
-        </nav>
-        <p ref={collectMenuItem} className="mt-[5vh] text-[12px] leading-[1.4] text-stone-400">
-          {location.lead} {location.place}
-          <br />
-          {tagline[0]} · {tagline[1]}
-        </p>
-      </div>
 
       {/* Main Hero Viewport Section */}
-      <section
-        className="relative overflow-hidden"
-        style={{
-          height: `calc(var(--slot) + ${SCROLL.endHeight} + ${SCROLL.gap})`,
-        }}
-      >
-        <div ref={stageRef} className="relative h-svh">
+      <section className="relative w-full overflow-hidden">
+        <div ref={stageRef} className="relative h-svh w-full flex flex-col justify-between overflow-hidden">
           {/* Intro backdrop: dark page + white plate */}
           <div
             ref={introLayerRef}
@@ -702,140 +615,98 @@ export default function CreativeStudioHero({
             </span>
           </div>
 
-          {/* Top bar */}
+          {/* Top brand header */}
           <header
             ref={headerRef}
-            className="grid grid-cols-[1fr_auto_1fr] items-start px-[4vw] pt-[2.4vh] text-[1.15vw] leading-[1.2] font-normal max-md:items-center max-md:gap-[3vw] max-md:text-[10px] max-md:leading-[1.3] md:px-[2.4vw] md:pt-[3.2vh] text-[#21100B]"
+            className="relative z-30 flex items-center justify-center px-[4vw] pt-[2.4vh] text-[1.15vw] leading-[1.2] font-normal md:px-[2.4vw] md:pt-[3.2vh] text-[#21100B]"
           >
-            <p ref={collect} className="will-change-[transform,opacity]">
-              {location.lead}{' '}
-              <span className="underline underline-offset-[0.2em] decoration-1 font-semibold">
-                {location.place}
-              </span>
-              <span className="max-md:hidden text-[#32140D]/75">
-                <br />
-                {location.line2}
-              </span>
-            </p>
             <button
               type="button"
               ref={headerLogoRef}
               onClick={() => onNavigate && onNavigate('home')}
-              className="relative z-30 text-[2.9vw] leading-none font-black tracking-[-0.03em] max-md:text-[28px] text-[#21100B] cursor-pointer"
+              className="relative z-30 text-[2.9vw] leading-none font-black tracking-[-0.03em] max-md:text-[28px] text-[#21100B] cursor-pointer hover:opacity-85 transition-opacity"
               style={LOGO_STYLE}
             >
               {brand}
             </button>
-            <p ref={collect} className="text-right will-change-[transform,opacity] max-md:hidden text-[#32140D]/75">
-              {tagline[0]}
-              <br />
-              {tagline[1]}
-            </p>
           </header>
 
-          {/* Headline — Deep Dark Brown & Black, Bold Minimal Presence */}
-          <h1 className="relative z-20 mt-[6vh] text-center text-[12.5vw] leading-[0.86] md:mt-[10vh] md:text-[9.6vw] font-black tracking-[-0.075em] uppercase text-[#21100B]">
-            <MaskedLines lines={title} register={collectTitle} />
+          {/* Headline — Orange-Brownish Mix */}
+          <h1 className="relative z-20 mt-[2vh] md:mt-[3vh] text-center text-[10vw] leading-[0.88] md:text-[7.5vw] font-black tracking-[-0.06em] uppercase text-[#B84A1C]">
+            <MaskedLines 
+              lines={title} 
+              register={collectTitle} 
+              className="bg-gradient-to-r from-[#E94F16] via-[#B84A1C] to-[#451B0F] bg-clip-text text-transparent inline-block pb-1"
+            />
           </h1>
-
-          {/* Tagline on phones */}
-          <p
-            ref={collect}
-            className="mt-[3.5vh] text-center text-[12px] leading-[1.35] will-change-[transform,opacity] md:hidden text-[#32140D]/80"
-          >
-            {tagline[0]}
-            <br />
-            {tagline[1]}
-          </p>
-
-          {/* Nav */}
-          <nav
-            ref={navRef}
-            className="absolute inset-x-0 top-[62vh] flex items-baseline justify-between px-[3vw] text-[2.4vw] leading-none font-medium tracking-[-0.03em] max-md:hidden text-[#21100B]"
-          >
-            {links.map((link, i) => (
-              <button
-                key={link.label}
-                type="button"
-                ref={collectHeroLink}
-                data-flip-id={`link-${i}`}
-                onClick={() => handleLinkClick(link)}
-                className="group flex items-start gap-[0.9vw] will-change-[transform,opacity] hover:text-black transition-colors cursor-pointer text-left"
-              >
-                <span
-                  className="mt-[0.25em] text-[0.36em] font-light tabular-nums text-[#32140D]/60"
-                  style={{ fontFamily: FONT_INDEX }}
-                >
-                  {String(i + 1).padStart(2, '0')}
-                </span>
-                <RollingLabel text={link.label} />
-              </button>
-            ))}
-          </nav>
 
           {/* Bottom row: copy | visual | copy */}
           <div
             ref={rowRef}
-            className="absolute inset-x-0 grid grid-cols-[1fr_38.4vw_1fr] items-start max-md:grid-cols-[1fr_84vw_1fr]"
-            style={{ top: 'var(--slot)' }}
+            className="relative z-30 w-full mb-[4vh] grid grid-cols-[1fr_38.4vw_1fr] items-center px-[4vw] max-md:grid-cols-1 max-md:gap-4"
           >
-            <p
+            <div
               ref={(el) => {
                 if (el) copyRefs.current[0] = el;
               }}
-              className="mx-auto text-center text-[1.35vw] leading-relaxed font-light tracking-[-0.03em] will-change-[opacity] max-md:hidden text-[#32140D]"
+              className="text-left md:text-center text-[1.2vw] max-md:text-xs leading-relaxed font-light tracking-[-0.02em] will-change-[opacity,transform] text-[#32140D] px-4"
             >
               <MaskedLines lines={leftCopy} register={collectCopy} />
-            </p>
+            </div>
 
-            {/* Visual: expands on scroll */}
-            <div className="z-30 col-start-2 justify-self-center max-md:w-[84vw]">
+            {/* Visual: expands gracefully on scroll with strict aspect ratio */}
+            <div className="z-30 justify-self-center flex items-center justify-center overflow-visible">
               <img
                 ref={imageRef}
                 src={image}
                 alt="Artisanal Bakery Creation"
-                className="h-[45vh] w-[38.4vw] max-w-none rounded-2xl bg-[#e6e6e3] object-cover shadow-2xl will-change-[transform,width,height] border border-[#32140D]/10"
+                className="h-[42vh] w-[38.4vw] max-md:h-[30vh] max-md:w-[86vw] aspect-[16/10] md:aspect-[4/3] rounded-2xl bg-[#e6e6e3] object-cover object-center shadow-2xl will-change-transform border border-[#32140D]/12"
               />
             </div>
 
-            <p
+            <div
               ref={(el) => {
                 if (el) copyRefs.current[1] = el;
               }}
-              className="mx-auto text-center text-[1.35vw] leading-relaxed font-light tracking-[-0.03em] will-change-[opacity] max-md:hidden text-[#32140D]"
+              className="text-right md:text-center text-[1.2vw] max-md:text-xs leading-relaxed font-light tracking-[-0.02em] will-change-[opacity,transform] text-[#32140D] px-4"
             >
               <MaskedLines lines={rightCopy} register={collectCopy} />
+            </div>
+          </div>
+
+          {/* Fullscreen gradient overlay for crisp text readability on full screen image */}
+          <div
+            ref={imageOverlayRef}
+            className="pointer-events-none absolute inset-0 z-35 bg-gradient-to-t from-black/85 via-black/45 to-black/15 opacity-0 will-change-[opacity]"
+          />
+
+          {/* Connected Next Text Section (comes directly as text on full screen image, without box or border) */}
+          <div
+            ref={introSectionRef}
+            className="absolute bottom-8 sm:bottom-12 md:bottom-16 left-0 right-0 z-40 px-[4vw] md:px-[6vw] grid gap-[3vw] md:grid-cols-2 items-end pointer-events-auto will-change-[transform,opacity]"
+          >
+            <div>
+              <p className="flex items-center gap-[0.6vw] text-[1.15vw] max-md:gap-[2vw] max-md:text-[13px] text-amber-300 font-mono uppercase tracking-wider font-bold drop-shadow-[0_2px_8px_rgba(0,0,0,0.85)]">
+                <span className="size-[0.7vw] rounded-full bg-amber-400 max-md:size-[7px] animate-pulse drop-shadow" />
+                <span ref={collectIntroText}>
+                  {intro.label}
+                </span>
+              </p>
+              <h2
+                ref={collectIntroText}
+                className="mt-[1.5vh] text-[2.5vw] font-serif font-black tracking-[-0.03em] max-md:text-[24px] text-white leading-[1.15] drop-shadow-[0_2px_12px_rgba(0,0,0,0.9)]"
+              >
+                {intro.heading}
+              </h2>
+            </div>
+            <p
+              ref={collectIntroText}
+              className="text-[2.2vw] leading-[1.3] font-normal tracking-[-0.03em] max-md:text-[18px] text-white/95 font-serif drop-shadow-[0_2px_10px_rgba(0,0,0,0.85)] max-w-2xl"
+            >
+              {intro.lead}
             </p>
           </div>
         </div>
-      </section>
-
-      {/* Intro statement section */}
-      <section
-        ref={introSectionRef}
-        className="grid gap-[4vw] px-[4vw] md:grid-cols-2 md:px-[2.4vw] pt-12 sm:pt-20"
-        style={{ paddingBottom: SCROLL.gap }}
-      >
-        <div>
-          <p className="flex items-center gap-[0.6vw] text-[1.15vw] text-[#32140D]/70 max-md:gap-[2vw] max-md:text-[12px] font-mono uppercase tracking-wider">
-            <span className="size-[0.7vw] rounded-full bg-[#21100B] max-md:size-[7px]" />
-            <span ref={collectIntroText} className="block font-bold">
-              {intro.label}
-            </span>
-          </p>
-          <h2
-            ref={collectIntroText}
-            className="mt-[1.5vh] text-[2.2vw] font-serif font-black tracking-[-0.03em] max-md:text-[22px] text-[#21100B]"
-          >
-            {intro.heading}
-          </h2>
-        </div>
-        <p
-          ref={collectIntroText}
-          className="text-[2.4vw] leading-[1.25] font-normal tracking-[-0.03em] max-md:text-[20px] text-[#21100B]/90 font-serif"
-        >
-          {intro.lead}
-        </p>
       </section>
     </div>
   );
