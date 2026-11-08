@@ -8,17 +8,17 @@ interface StoryPageProps {
 
 export default function StoryPage({ onNavigateToMenu }: StoryPageProps) {
   return (
-    <div className="relative min-h-screen bg-brand-cream text-brand-chocolate py-12 sm:py-20 px-4 sm:px-6 lg:px-12 overflow-hidden">
+    <div className="relative min-h-screen bg-brand-cream/80 text-brand-chocolate py-12 sm:py-20 px-4 sm:px-6 lg:px-12 overflow-hidden">
       
       {/* Background design and light image overlay */}
       <div className="pointer-events-none absolute inset-0 select-none overflow-hidden" aria-hidden="true">
         <img
           src="/assets/images/hero_editorial_muffin_1794039141433.jpg"
           alt=""
-          className="w-full h-full object-cover opacity-[0.06] scale-105 filter blur-[0.5px]"
+          className="w-full h-full object-cover opacity-[0.04] scale-105 filter blur-[0.5px]"
           loading="lazy"
         />
-        <div className="absolute inset-0 bg-radial from-brand-caramel/8 via-brand-cream/80 to-brand-cream" />
+        <div className="absolute inset-0 bg-radial from-brand-caramel/5 via-brand-cream/60 to-brand-cream/70" />
       </div>
 
       {/* Heritage watermark graphic */}

@@ -1,5 +1,6 @@
 import React from 'react';
 import { ArrowRight, MapPin, Sparkles } from 'lucide-react';
+import SilkRibbonBackground from './SilkRibbonBackground';
 
 interface EditorialSliderOutroProps {
   onNavigate: (view: 'home' | 'menu' | 'story' | 'contact' | 'find-us' | 'theme-studio' | 'tracker') => void;
@@ -9,9 +10,11 @@ export default function EditorialSliderOutro({ onNavigate }: EditorialSliderOutr
   return (
     <section 
       id="curated-menu-intro"
-      className="relative w-full bg-brand-cream text-brand-chocolate py-24 sm:py-32 md:py-40 px-6 lg:px-12 border-t border-b border-brand-caramel/15 scroll-mt-20 overflow-hidden"
+      className="relative w-full bg-brand-cream/80 text-brand-chocolate py-24 sm:py-32 md:py-40 px-6 lg:px-12 border-t border-b border-brand-caramel/15 scroll-mt-20 overflow-hidden"
       aria-label="Curated Bakehouse Menu Introduction"
     >
+      {/* Component-020 Silk Ribbons Interactive Background */}
+      <SilkRibbonBackground />
       <div className="relative max-w-4xl mx-auto text-center space-y-8 sm:space-y-10">
         
         {/* Kicker Badge */}

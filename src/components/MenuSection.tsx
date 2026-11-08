@@ -571,7 +571,7 @@ export default function MenuSection({
   };
 
   return (
-    <section className="py-12 px-4 bg-brand-sugar" id="menu-section">
+    <section className="py-12 px-4 bg-brand-sugar/80 backdrop-blur-xs" id="menu-section">
       <div className="container mx-auto max-w-7xl">
         
         {/* Title Block */}

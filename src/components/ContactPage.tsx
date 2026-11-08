@@ -46,7 +46,7 @@ export default function ContactPage() {
   };
 
   return (
-    <div className="min-h-screen bg-brand-cream text-brand-chocolate py-12 sm:py-20 px-4 sm:px-6 lg:px-12">
+    <div className="relative min-h-screen bg-brand-cream/80 text-brand-chocolate py-12 sm:py-20 px-4 sm:px-6 lg:px-12 overflow-hidden">
       <div className="max-w-5xl mx-auto space-y-14 sm:space-y-20">
         
         {/* Header */}

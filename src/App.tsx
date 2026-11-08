@@ -3,8 +3,7 @@ import { motion, AnimatePresence } from 'motion/react';
 import { 
   ShoppingBag, Phone, Mail, MapPin, Clock, Menu, X, Sparkles, MessageSquare, 
   HelpCircle, ShieldCheck, Heart, ChefHat, CheckCircle2, ChevronRight, Copy, Palette,
-  Instagram, Facebook, QrCode, Smartphone, Check, Landmark, Loader2, Star, Download, Printer,
-  Mic, MicOff
+  Instagram, Facebook, QrCode, Smartphone, Check, Landmark, Loader2, Star, Download, Printer
 } from 'lucide-react';
 
 // Core Critical Components
@@ -18,7 +17,6 @@ import SmoothScroll from './components/SmoothScroll';
 import CreativeStudioHero from './components/CreativeStudioHero';
 import BranchLocations from './components/BranchLocations';
 import FeaturedVideoReel from './components/FeaturedVideoReel';
-import AmbientBakerySound from './components/AmbientBakerySound';
 import NavSearchBar from './components/NavSearchBar';
 import OfflineSyncBanner from './components/OfflineSyncBanner';
 import TopQuickAccessBar from './components/TopQuickAccessBar';
@@ -32,7 +30,6 @@ import ThemeStudioPage from './components/ThemeStudioPage';
 import SplitScreenSlider from './components/SplitScreenSlider';
 import EditorialTextBridge from './components/EditorialTextBridge';
 import EditorialSliderOutro from './components/EditorialSliderOutro';
-import Interactive3DMuffinShowcase from './components/Interactive3DMuffinShowcase';
 
 // Lazy-Loaded Heavy Components for Rapid Initial Page Load
 const AdminDashboard = lazy(() => import('./components/AdminDashboard'));
@@ -252,108 +249,6 @@ export default function App() {
   const [hoverRating, setHoverRating] = useState<number>(0);
   const [inquirySubmitting, setInquirySubmitting] = useState(false);
   const [inquiryStatus, setInquiryStatus] = useState<{ type: 'success' | 'error', text: string } | null>(null);
-
-  // Speech Dictation states for Feedback & Complaints Form
-  const [isDictating, setIsDictating] = useState(false);
-  const [dictationError, setDictationError] = useState<string | null>(null);
-  const [dictationSupported, setDictationSupported] = useState(true);
-  const recognitionRef = useRef<any>(null);
-
-  useEffect(() => {
-    // Check Web Speech API browser availability
-    const SpeechRecognition = (window as any).SpeechRecognition || (window as any).webkitSpeechRecognition;
-    if (!SpeechRecognition) {
-      setDictationSupported(false);
-    }
-  }, []);
-
-  const handleToggleDictation = async () => {
-    const SpeechRecognition = (window as any).SpeechRecognition || (window as any).webkitSpeechRecognition;
-    if (!SpeechRecognition) {
-      setDictationError("Web Speech API is not supported in this browser environment. Please type your message manually.");
-      setDictationSupported(false);
-      return;
-    }
-
-    if (isDictating) {
-      if (recognitionRef.current) {
-        try {
-          recognitionRef.current.stop();
-        } catch (e) {
-          console.warn('Stopping speech recognition:', e);
-        }
-      }
-      setIsDictating(false);
-      return;
-    }
-
-    setDictationError(null);
-
-    // Optional microphone permission check via getUserMedia if supported
-    if (navigator.mediaDevices && navigator.mediaDevices.getUserMedia) {
-      try {
-        const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
-        // Stop the temporary track immediately after permission check
-        stream.getTracks().forEach(track => track.stop());
-      } catch (micErr: any) {
-        console.warn('Microphone permission check warning:', micErr);
-        if (micErr.name === 'NotAllowedError' || micErr.name === 'PermissionDeniedError') {
-          setDictationError("Microphone permission denied. Please allow microphone access in your browser settings to use voice dictation.");
-          setIsDictating(false);
-          return;
-        }
-      }
-    }
-
-    try {
-      const recognition = new SpeechRecognition();
-      recognition.continuous = true;
-      recognition.interimResults = true;
-      recognition.lang = 'en-US';
-
-      // Keep track of text prior to start of current dictation session
-      let initialText = inquiryMessage;
-
-      recognition.onstart = () => {
-        setIsDictating(true);
-      };
-
-      recognition.onresult = (event: any) => {
-        let transcript = '';
-        for (let i = 0; i < event.results.length; i++) {
-          transcript += event.results[i][0].transcript;
-        }
-        const spacePrefix = initialText && !initialText.endsWith(' ') ? ' ' : '';
-        setInquiryMessage(initialText ? `${initialText}${spacePrefix}${transcript}` : transcript);
-      };
-
-      recognition.onerror = (event: any) => {
-        console.warn('Speech recognition status:', event.error);
-        if (event.error === 'not-allowed' || event.error === 'permission-denied' || event.error === 'service-not-allowed') {
-          setDictationError("Microphone access blocked or permission denied. Please grant microphone access in browser settings or type your message manually.");
-        } else if (event.error === 'no-speech') {
-          setDictationError("No speech detected. Please speak clearly into your microphone.");
-        } else if (event.error === 'aborted') {
-          // Dictation stopped by user or system
-        } else {
-          setDictationError(`Voice dictation issue (${event.error}). Please type your message manually.`);
-        }
-        setIsDictating(false);
-      };
-
-      recognition.onend = () => {
-        setIsDictating(false);
-      };
-
-      recognitionRef.current = recognition;
-      recognition.start();
-    } catch (err: any) {
-      console.warn('Failed to start speech recognition:', err);
-      setDictationError("Microphone access permission required. Please enable microphone access or type manually.");
-      setIsDictating(false);
-    }
-  };
-
   // Cart Handlers
   const handleAddToCart = (newCartItem: CartItem) => {
     setCart(prevCart => {
@@ -671,6 +566,8 @@ export default function App() {
         onNavigate={handleNavigate}
         onOpenCart={() => setIsCartOpen(true)}
         cartCount={totalCartCount}
+        currentTheme={theme}
+        onToggleTheme={() => setTheme(prev => prev === 'luxury_main' ? 'muffin_galaxy' : 'luxury_main')}
       />
 
       {/* Persistent Offline Orders Synchronization Banner */}
@@ -878,7 +775,7 @@ export default function App() {
                 <button onClick={() => handleNavigate('menu')} className="hover:text-brand-caramel transition-colors cursor-pointer text-left">03 Complete Menu</button>
                 <button onClick={() => handleNavigate('find-us')} className="hover:text-brand-caramel transition-colors cursor-pointer text-left">04 Branches (Bahawalpur)</button>
                 <button onClick={() => handleNavigate('contact')} className="hover:text-brand-caramel transition-colors cursor-pointer text-left">05 Contact & Inquiries</button>
-                <button onClick={() => handleNavigate('theme-studio')} className="hover:text-brand-caramel transition-colors cursor-pointer text-left">06 Theme Studio</button>
+                <button onClick={() => setTheme(prev => prev === 'luxury_main' ? 'muffin_galaxy' : 'luxury_main')} className="hover:text-brand-caramel transition-colors cursor-pointer text-left">06 Change Theme ({theme === 'muffin_galaxy' ? 'Galaxy 🪐' : 'Atelier 👑'})</button>
               </div>
             </div>
 

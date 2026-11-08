@@ -75,53 +75,8 @@ const showBrowserNotification = async (title: string, body: string, url: string 
   }
 };
 
-const triggerAudioChime = (type: 'info' | 'success' | 'delivery' | 'warning') => {
-  try {
-    const audioCtx = new (window.AudioContext || (window as any).webkitAudioContext)();
-    const osc = audioCtx.createOscillator();
-    const gain = audioCtx.createGain();
-
-    osc.connect(gain);
-    gain.connect(audioCtx.destination);
-
-    const now = audioCtx.currentTime;
-
-    if (type === 'delivery') {
-      // Nice happy major-scale arpeggio 🛵
-      osc.type = 'triangle';
-      osc.frequency.setValueAtTime(261.63, now); // C4
-      osc.frequency.setValueAtTime(329.63, now + 0.1); // E4
-      osc.frequency.setValueAtTime(392.00, now + 0.2); // G4
-      osc.frequency.setValueAtTime(523.25, now + 0.3); // C5
-      
-      gain.gain.setValueAtTime(0.15, now);
-      gain.gain.exponentialRampToValueAtTime(0.01, now + 0.6);
-      osc.start(now);
-      osc.stop(now + 0.6);
-    } else if (type === 'success') {
-      // Sweet high bell sound
-      osc.type = 'sine';
-      osc.frequency.setValueAtTime(523.25, now); // C5
-      osc.frequency.setValueAtTime(659.25, now + 0.08); // E5
-      
-      gain.gain.setValueAtTime(0.15, now);
-      gain.gain.exponentialRampToValueAtTime(0.01, now + 0.4);
-      osc.start(now);
-      osc.stop(now + 0.4);
-    } else {
-      // Normal cute notification sound
-      osc.type = 'sine';
-      osc.frequency.setValueAtTime(440.00, now); // A4
-      osc.frequency.setValueAtTime(554.37, now + 0.08); // C#5
-      
-      gain.gain.setValueAtTime(0.1, now);
-      gain.gain.exponentialRampToValueAtTime(0.01, now + 0.3);
-      osc.start(now);
-      osc.stop(now + 0.3);
-    }
-  } catch (e) {
-    console.log('Audio Context block or unsupported:', e);
-  }
+const triggerAudioChime = (_type: 'info' | 'success' | 'delivery' | 'warning') => {
+  // Sound disabled per user request for fast and silent notifications
 };
 
 interface NotificationManagerProps {

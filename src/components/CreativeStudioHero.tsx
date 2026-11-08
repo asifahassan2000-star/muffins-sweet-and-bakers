@@ -4,16 +4,16 @@ import { useGSAP } from '@gsap/react';
 import { Flip } from 'gsap/Flip';
 import { ScrollTrigger } from 'gsap/ScrollTrigger';
 import { SplitText } from 'gsap/SplitText';
+import { ArrowRight, Sparkles } from 'lucide-react';
 
 gsap.registerPlugin(useGSAP, Flip, ScrollTrigger, SplitText);
 ScrollTrigger.config({ ignoreMobileResize: true });
 
 /* ------------------------------------------------------------------ */
-/*  Config & Fonts (Clean fallbacks for SF Pro & Fraunces)            */
+/*  Config & Fonts (Exact font styling matching original first design)*/
 /* ------------------------------------------------------------------ */
 
 const FONT = "'SF Pro Display', -apple-system, BlinkMacSystemFont, 'Outfit', 'Inter', system-ui, sans-serif";
-const FONT_INDEX = "'DIN Next', 'Fira Code', monospace, sans-serif";
 const FONT_LOGO = "Fraunces, 'Playfair Display', 'Cormorant Garamond', Georgia, serif";
 const LOGO_STYLE = { fontFamily: FONT_LOGO, fontVariationSettings: "'opsz' 144" };
 
@@ -62,23 +62,6 @@ const SCROLL = {
   revealEase: 'expo.out',
 };
 
-const HEADER = {
-  startAt: 0.5,
-  scrub: true as const,
-  stripAt: 0.5,
-  logoAt: 0.6,
-};
-
-const MENU = {
-  duration: 0.9,
-  ease: 'expo.inOut',
-  itemsAt: 0.35,
-  travel: 40,
-  itemDuration: 1,
-  stagger: 0.06,
-  closeSpeed: 1.5,
-};
-
 const HOVER = {
   duration: 0.6,
   stagger: 0.025,
@@ -88,16 +71,64 @@ const HOVER = {
 const pageLenis = () => (window as Window & { __lenis?: { stop(): void; start(): void } }).__lenis;
 
 /* ------------------------------------------------------------------ */
-/*  Props & Types                                                     */
+/*  4-Step Story Definitions & Best High-Resolution Images            */
 /* ------------------------------------------------------------------ */
 
 export type StudioLink = { label: string; href?: string; onClick?: () => void };
 
-export type StudioIntro = {
-  label: string;
+export interface ScrollStoryStep {
+  step: string;
+  badge: string;
   heading: string;
   lead: string;
-};
+  subHighlight: string;
+  image: string;
+  alt: string;
+  ctaText: string;
+}
+
+export const DEFAULT_STORY_STEPS: ScrollStoryStep[] = [
+  {
+    step: '01 / 04',
+    badge: 'Morning Atelier',
+    heading: 'The Patisserie Craft & Morning Breads',
+    lead: 'We craft slow-baked pastries and warm golden muffins for patrons who appreciate true uncompromising taste. Fresh from copper deck ovens at 7:00 AM daily across Bahawalpur.',
+    subHighlight: 'Fresh Oven Batches · 7:00 AM Daily',
+    image: '/assets/images/hero_editorial_muffin_1794039141433.jpg',
+    alt: 'Signature Golden Honey Muffin',
+    ctaText: 'Explore Fresh Breads',
+  },
+  {
+    step: '02 / 04',
+    badge: 'Royal Tradition',
+    heading: 'Royal Desi Ghee Patashay & Sohan Halwa',
+    lead: 'Our signature generational mother recipe perfected since 1988. Slow-simmered in copper cauldrons with pure desi ghee, saffron threads, pistachio slivers, and fragrant green cardamom.',
+    subHighlight: '100% Pure Desi Ghee · Bahawalpur Legacy',
+    image: '/assets/images/muffinns_patashay_sweets_1784645566064.jpg',
+    alt: 'Royal Desi Ghee Patashay Traditional Sweets',
+    ctaText: 'Taste Heritage Mithai',
+  },
+  {
+    step: '03 / 04',
+    badge: 'Celebration Atelier',
+    heading: 'Lotus Biscoff Crunch & Velvet Three Milk',
+    lead: 'Soaked in three sweetened dairy milks and layered with velvety chantilly cream, Belgian chocolate ganache, and Lotus Biscoff crumble. The undisputed centerpiece of every family celebration.',
+    subHighlight: 'Custom Celebration & Bento Cakes',
+    image: '/assets/images/muffinns_lotus_biscof_cake.jpg',
+    alt: 'Lotus Biscoff Celebration Cake',
+    ctaText: 'Order Celebration Cake',
+  },
+  {
+    step: '04 / 04',
+    badge: 'Savory Patisserie',
+    heading: 'Golden Flaky Chicken Patties & Crispy Samosas',
+    lead: 'Layered with feather-light puff pastry, tender spiced chicken breast, and secret bakery seasonings. Served steaming warm for Bahawalpur’s cherished afternoon family high-tea tables.',
+    subHighlight: 'Flaky Puff Pastry · High Tea Tradition',
+    image: '/assets/images/muffinns_chicken_patty_1784645625734.jpg',
+    alt: 'Flaky Golden Chicken Patty High Tea Snack',
+    ctaText: 'Discover Savory High-Tea',
+  },
+];
 
 export interface CreativeStudioHeroProps {
   brand?: string;
@@ -107,8 +138,7 @@ export interface CreativeStudioHeroProps {
   links?: StudioLink[];
   leftCopy?: string[];
   rightCopy?: string[];
-  image?: string;
-  intro?: StudioIntro;
+  steps?: ScrollStoryStep[];
   onNavigate?: (view: any) => void;
 }
 
@@ -121,14 +151,8 @@ const DEFAULT_LINKS: StudioLink[] = [
   { label: 'Direct Kitchen Order' },
 ];
 
-const DEFAULT_INTRO: StudioIntro = {
-  label: 'Bahawalpur Heritage',
-  heading: 'The Patisserie Craft Since 1988',
-  lead: 'We craft slow-baked pastries and pure royal sweets for patrons who appreciate true uncompromising taste. Every recipe relies on copper cauldron reduction, stone-cracked cardamom, farm-fresh milk, and French double cream without shortcuts.',
-};
-
 /* ------------------------------------------------------------------ */
-/*  Masked lines                                                      */
+/*  Masked lines helper                                               */
 /* ------------------------------------------------------------------ */
 
 function MaskedLines({
@@ -154,44 +178,11 @@ function MaskedLines({
 }
 
 /* ------------------------------------------------------------------ */
-/*  Rolling label for nav hovers                                      */
-/* ------------------------------------------------------------------ */
-
-function RollingLabel({ text }: { text: string }) {
-  const chars = Array.from(text).map((c, i) => ({ c: c === ' ' ? '\u00A0' : c, i }));
-  const char = (shift: string) =>
-    chars.map(({ c, i }) => (
-      <span
-        key={i}
-        className={`inline-block transition-transform will-change-transform ${shift}`}
-        style={{
-          transitionDuration: `${HOVER.duration}s`,
-          transitionDelay: `${i * HOVER.stagger}s`,
-          transitionTimingFunction: HOVER.ease,
-        }}
-      >
-        {c}
-      </span>
-    ));
-
-  return (
-    <span className="relative block overflow-hidden pr-[0.08em] -mr-[0.08em] leading-[1.15]">
-      <span className="block">{char('group-hover:-translate-y-full')}</span>
-      <span aria-hidden="true" className="absolute inset-0 block">
-        {char('translate-y-full group-hover:translate-y-0')}
-      </span>
-    </span>
-  );
-}
-
-/* ------------------------------------------------------------------ */
-/*  Component                                                          */
+/*  Main Component                                                    */
 /* ------------------------------------------------------------------ */
 
 export default function CreativeStudioHero({
   brand = 'Muff Inns',
-  location = { lead: 'Atelier In', place: 'Bahawalpur, Punjab', line2: 'Heritage Bakery & Mithai Since 1988' },
-  tagline = ['Artisanal Sweet & Baker House', 'Slow-Baked Daily Indulgence'],
   title = ['Decadence In', 'Every Bite'],
   links = DEFAULT_LINKS,
   leftCopy = [
@@ -204,20 +195,13 @@ export default function CreativeStudioHero({
     'for weddings, cherished gatherings',
     'and refined daily indulgence.',
   ],
-  image = '/assets/images/hero_editorial_muffin_1794039141433.jpg',
-  intro = DEFAULT_INTRO,
+  steps = DEFAULT_STORY_STEPS,
   onNavigate,
 }: CreativeStudioHeroProps) {
   const root = useRef<HTMLDivElement>(null);
-  const [menuOpen, setMenuOpen] = useState(false);
-  const menuRef = useRef<HTMLDivElement>(null);
-  const menuItems = useRef<HTMLElement[]>([]);
-  const menuTl = useRef<gsap.core.Timeline | null>(null);
+  const [activeStep, setActiveStep] = useState(0);
 
-  const collectMenuItem = (el: HTMLElement | null) => {
-    if (el && !menuItems.current.includes(el)) menuItems.current.push(el);
-  };
-
+  // Animation element refs
   const introLayerRef = useRef<HTMLDivElement>(null);
   const introLogoRef = useRef<HTMLSpanElement>(null);
   const plateRef = useRef<HTMLSpanElement>(null);
@@ -225,105 +209,52 @@ export default function CreativeStudioHero({
   const headerLogoRef = useRef<any>(null);
   const stageRef = useRef<HTMLDivElement>(null);
   const rowRef = useRef<HTMLDivElement>(null);
-  const introSectionRef = useRef<HTMLDivElement>(null);
+  const imageFrameRef = useRef<HTMLDivElement>(null);
   const imageOverlayRef = useRef<HTMLDivElement>(null);
-  const introTextRefs = useRef<HTMLElement[]>([]);
-  const imageRef = useRef<HTMLImageElement>(null);
-  const copyRefs = useRef<HTMLParagraphElement[]>([]);
+  const indicatorsRef = useRef<HTMLDivElement>(null);
+
+  // 4 Scroll Images
+  const img1Ref = useRef<HTMLImageElement>(null);
+  const img2Ref = useRef<HTMLImageElement>(null);
+  const img3Ref = useRef<HTMLImageElement>(null);
+  const img4Ref = useRef<HTMLImageElement>(null);
+
+  // 4 Step Text Section Refs
+  const step1TextRef = useRef<HTMLDivElement>(null);
+  const step2TextRef = useRef<HTMLDivElement>(null);
+  const step3TextRef = useRef<HTMLDivElement>(null);
+  const step4TextRef = useRef<HTMLDivElement>(null);
 
   const titleLines = useRef<HTMLElement[]>([]);
   const copyLines = useRef<HTMLElement[]>([]);
   const content = useRef<HTMLElement[]>([]);
 
-  const collect = (el: HTMLElement | null) => {
-    if (el && !content.current.includes(el)) content.current.push(el);
-  };
   const collectTitle = (el: HTMLElement | null) => {
     if (el && !titleLines.current.includes(el)) titleLines.current.push(el);
-  };
-
-  const navRef = useRef<HTMLElement>(null);
-  const stripRef = useRef<HTMLDivElement>(null);
-  const barLogoRef = useRef<any>(null);
-  const heroLinks = useRef<HTMLElement[]>([]);
-  const barLinks = useRef<HTMLElement[]>([]);
-
-  const collectHeroLink = (el: HTMLElement | null) => {
-    collect(el);
-    if (el && !heroLinks.current.includes(el)) heroLinks.current.push(el);
-  };
-  const collectBarLink = (el: HTMLElement | null) => {
-    if (el && !barLinks.current.includes(el)) barLinks.current.push(el);
   };
   const collectCopy = (el: HTMLElement | null) => {
     if (el && !copyLines.current.includes(el)) copyLines.current.push(el);
   };
-  const collectIntroText = (el: HTMLElement | null) => {
-    if (el && !introTextRefs.current.includes(el)) introTextRefs.current.push(el);
+
+  const copyRefs = useRef<HTMLParagraphElement[]>([]);
+
+  // Smooth jump to specific step
+  const scrollToStep = (stepIdx: number) => {
+    if (!stageRef.current) return;
+    const st = ScrollTrigger.getById('creative-scroll-stage');
+    if (st) {
+      const targets = [0.18, 0.45, 0.72, 0.94];
+      const targetRatio = targets[stepIdx] || 0.18;
+      const targetPos = st.start + (st.end - st.start) * targetRatio;
+      window.scrollTo({ top: targetPos, behavior: 'smooth' });
+    } else {
+      stageRef.current.scrollIntoView({ behavior: 'smooth' });
+    }
   };
 
-  const lockedRef = useRef(false);
-  const lockScroll = useCallback(() => {
-    lockedRef.current = true;
-    document.documentElement.setAttribute('data-scroll-locked', '');
-    pageLenis()?.stop();
-
-    const block = (e: Event) => e.preventDefault();
-    const keys = new Set(['ArrowUp', 'ArrowDown', 'PageUp', 'PageDown', 'Home', 'End', ' ']);
-    const key = (e: KeyboardEvent) => {
-      if (keys.has(e.key)) e.preventDefault();
-    };
-
-    window.addEventListener('wheel', block, { passive: false });
-    window.addEventListener('touchmove', block, { passive: false });
-    window.addEventListener('keydown', key);
-
-    return () => {
-      if (!lockedRef.current) return;
-      lockedRef.current = false;
-      document.documentElement.removeAttribute('data-scroll-locked');
-      pageLenis()?.start();
-      window.removeEventListener('wheel', block);
-      window.removeEventListener('touchmove', block);
-      window.removeEventListener('keydown', key);
-    };
-  }, []);
-
-  useGSAP(
-    () => {
-      const sheet = menuRef.current;
-      if (!sheet) return;
-      menuTl.current = gsap
-        .timeline({ paused: true, defaults: { ease: MENU.ease } })
-        .set(sheet, { autoAlpha: 1 })
-        .fromTo(
-          sheet,
-          { clipPath: 'inset(0 0 100% 0)' },
-          { clipPath: 'inset(0 0 0% 0)', duration: MENU.duration },
-        )
-        .fromTo(
-          menuItems.current,
-          { y: MENU.travel, opacity: 0 },
-          { y: 0, opacity: 1, duration: MENU.itemDuration, stagger: MENU.stagger, ease: 'expo.out' },
-          MENU.itemsAt,
-        );
-    },
-    { scope: root },
-  );
-
-  const menuUnlock = useRef<(() => void) | null>(null);
-  useEffect(() => {
-    const tl = menuTl.current;
-    if (!tl) return;
-    if (menuOpen) {
-      menuUnlock.current = lockScroll();
-      tl.timeScale(1).play();
-    } else {
-      menuUnlock.current?.();
-      menuUnlock.current = null;
-      tl.timeScale(MENU.closeSpeed).reverse();
-    }
-  }, [menuOpen, lockScroll]);
+  /* ------------------------------------------------------------------ */
+  /*  Buttery Smooth 4-Step Pinned Scroll Animation                     */
+  /* ------------------------------------------------------------------ */
 
   useGSAP(
     () => {
@@ -336,119 +267,269 @@ export default function CreativeStudioHero({
       const lines = titleLines.current;
       const copy = copyLines.current;
       const row = rowRef.current;
-      const visual = imageRef.current;
-      const introSection = introSectionRef.current;
+      const imageFrame = imageFrameRef.current;
+      const img1 = img1Ref.current;
+      const img2 = img2Ref.current;
+      const img3 = img3Ref.current;
+      const img4 = img4Ref.current;
+      const step1Text = step1TextRef.current;
+      const step2Text = step2TextRef.current;
+      const step3Text = step3TextRef.current;
+      const step4Text = step4TextRef.current;
+      const overlay = imageOverlayRef.current;
+      const indicators = indicatorsRef.current;
 
-      if (!stage || !header || !row || !introSection || !introLayer || !logo || !plate || !target || !visual) {
+      if (!stage || !header || !row || !introLayer || !logo || !plate || !target || !imageFrame) {
         return;
       }
 
-      // Pinned stage for continuous smooth image zoom to proper proportion and connected intro text arrival
+      // Initial state of text sections and images
+      if (step1Text) gsap.set(step1Text, { autoAlpha: 0, yPercent: 35 });
+      if (step2Text) gsap.set(step2Text, { autoAlpha: 0, yPercent: 35 });
+      if (step3Text) gsap.set(step3Text, { autoAlpha: 0, yPercent: 35 });
+      if (step4Text) gsap.set(step4Text, { autoAlpha: 0, yPercent: 35 });
+      if (indicators) gsap.set(indicators, { autoAlpha: 0, y: -12 });
+      if (img2) gsap.set(img2, { autoAlpha: 0, scale: 1.05 });
+      if (img3) gsap.set(img3, { autoAlpha: 0, scale: 1.05 });
+      if (img4) gsap.set(img4, { autoAlpha: 0, scale: 1.05 });
+
+      // Pinned stage for continuous smooth image zoom + 4-step image/text changes
       const zoomTl = gsap.timeline({
+        id: 'creative-scroll-stage',
         scrollTrigger: {
+          id: 'creative-scroll-stage',
           trigger: stage,
           start: 'top top',
-          end: '+=130%',
+          end: '+=360%',
           pin: true,
           pinSpacing: true,
           scrub: 1.2,
           invalidateOnRefresh: true,
           anticipatePin: 1,
+          onUpdate: (self) => {
+            const p = self.progress;
+            if (p < 0.32) {
+              setActiveStep(0);
+            } else if (p < 0.58) {
+              setActiveStep(1);
+            } else if (p < 0.84) {
+              setActiveStep(2);
+            } else {
+              setActiveStep(3);
+            }
+          },
         },
         defaults: { ease: 'power1.inOut' },
       });
 
-      // Prepare connected next text section initial state
-      gsap.set(introSection, { yPercent: 110, opacity: 0 });
-      gsap.set(introTextRefs.current, { y: 25, opacity: 0 });
+      // 1. Initial Hero Elements fade out
+      zoomTl.to(
+        header,
+        {
+          opacity: 0,
+          y: -25,
+          duration: 0.2,
+        },
+        0,
+      );
 
-      zoomTl
-        .to(
-          header,
+      const validLines = lines.filter(Boolean);
+      if (validLines.length > 0) {
+        zoomTl.to(
+          validLines,
+          {
+            opacity: 0,
+            y: -35,
+            duration: 0.22,
+          },
+          0,
+        );
+      }
+
+      const validCopyRefs = copyRefs.current.filter(Boolean);
+      if (validCopyRefs.length > 0) {
+        zoomTl.to(
+          validCopyRefs,
           {
             opacity: 0,
             y: -25,
-            duration: 0.3,
+            duration: 0.22,
           },
           0,
-        )
-        .to(
-          lines,
-          {
-            opacity: 0,
-            y: -40,
-            duration: 0.35,
-          },
-          0,
-        )
-        .to(
-          copyRefs.current,
-          {
-            opacity: 0,
-            y: -30,
-            duration: 0.35,
-          },
-          0,
-        )
-        // Zoom image smoothly to full screen
-        .to(
-          visual,
-          {
-            scale: () => (window.innerWidth < 768 ? 3.3 : 2.65),
-            y: () => (window.innerWidth < 768 ? '-12vh' : '-15vh'),
-            borderRadius: '0px',
-            borderWidth: '0px',
-            boxShadow: 'none',
-            duration: 0.8,
-            ease: 'power2.out',
-          },
-          0,
-        )
-        // Cinematic backdrop overlay for crystal clear typography on full screen image
-        .to(
-          imageOverlayRef.current,
-          {
-            opacity: 1,
-            duration: 0.65,
-            ease: 'power2.out',
-          },
-          0.2,
-        )
-        // Direct connection: Next text section smoothly comes on screen over the full screen image
-        .fromTo(
-          introSection,
-          {
-            yPercent: 110,
-            opacity: 0,
-          },
-          {
-            yPercent: 0,
-            opacity: 1,
-            duration: 0.65,
-            ease: 'power2.out',
-          },
-          0.3,
-        )
-        .fromTo(
-          introTextRefs.current,
-          {
-            y: 25,
-            opacity: 0,
-          },
-          {
-            y: 0,
-            opacity: 1,
-            stagger: 0.08,
-            duration: 0.5,
-            ease: 'power2.out',
-          },
-          0.45,
         );
+      }
 
+      // 2. Expand frame to full-bleed cinematic background
+      zoomTl.to(
+        imageFrame,
+        {
+          scale: () => (window.innerWidth < 768 ? 3.3 : 2.65),
+          y: () => (window.innerWidth < 768 ? '-12vh' : '-15vh'),
+          borderRadius: '0px',
+          borderWidth: '0px',
+          boxShadow: 'none',
+          duration: 0.45,
+          ease: 'power2.out',
+        },
+        0,
+      );
+
+      if (overlay) {
+        zoomTl.to(
+          overlay,
+          {
+            opacity: 1,
+            duration: 0.35,
+            ease: 'power2.out',
+          },
+          0.12,
+        );
+      }
+
+      if (indicators) {
+        zoomTl.to(
+          indicators,
+          {
+            autoAlpha: 1,
+            y: 0,
+            duration: 0.3,
+            ease: 'power2.out',
+          },
+          0.15,
+        );
+      }
+
+      // -------------------------------------------------------------
+      // SECTION 1: Morning Atelier (Honey Muffin & Artisan Breads)
+      // -------------------------------------------------------------
+      if (step1Text) {
+        zoomTl.fromTo(
+          step1Text,
+          { yPercent: 35, autoAlpha: 0 },
+          { yPercent: 0, autoAlpha: 1, duration: 0.25, ease: 'power2.out' },
+          0.16,
+        );
+      }
+
+      // -------------------------------------------------------------
+      // TRANSITION 1 -> 2: (Image 1 -> Image 2, Text 1 -> Text 2)
+      // -------------------------------------------------------------
+      if (step1Text) {
+        zoomTl.to(
+          step1Text,
+          { yPercent: -25, autoAlpha: 0, duration: 0.18, ease: 'power2.in' },
+          0.34,
+        );
+      }
+
+      if (img1) {
+        zoomTl.to(
+          img1,
+          { opacity: 0, scale: 1.04, duration: 0.22, ease: 'power1.inOut' },
+          0.34,
+        );
+      }
+
+      if (img2) {
+        zoomTl.fromTo(
+          img2,
+          { autoAlpha: 0, scale: 1.06 },
+          { autoAlpha: 1, scale: 1, duration: 0.24, ease: 'power1.inOut' },
+          0.35,
+        );
+      }
+
+      if (step2Text) {
+        zoomTl.fromTo(
+          step2Text,
+          { yPercent: 30, autoAlpha: 0 },
+          { yPercent: 0, autoAlpha: 1, duration: 0.24, ease: 'power2.out' },
+          0.39,
+        );
+      }
+
+      // -------------------------------------------------------------
+      // TRANSITION 2 -> 3: (Image 2 -> Image 3, Text 2 -> Text 3)
+      // -------------------------------------------------------------
+      if (step2Text) {
+        zoomTl.to(
+          step2Text,
+          { yPercent: -25, autoAlpha: 0, duration: 0.18, ease: 'power2.in' },
+          0.60,
+        );
+      }
+
+      if (img2) {
+        zoomTl.to(
+          img2,
+          { opacity: 0, scale: 1.04, duration: 0.22, ease: 'power1.inOut' },
+          0.60,
+        );
+      }
+
+      if (img3) {
+        zoomTl.fromTo(
+          img3,
+          { autoAlpha: 0, scale: 1.06 },
+          { autoAlpha: 1, scale: 1, duration: 0.24, ease: 'power1.inOut' },
+          0.61,
+        );
+      }
+
+      if (step3Text) {
+        zoomTl.fromTo(
+          step3Text,
+          { yPercent: 30, autoAlpha: 0 },
+          { yPercent: 0, autoAlpha: 1, duration: 0.24, ease: 'power2.out' },
+          0.65,
+        );
+      }
+
+      // -------------------------------------------------------------
+      // TRANSITION 3 -> 4: (Image 3 -> Image 4, Text 3 -> Text 4)
+      // -------------------------------------------------------------
+      if (step3Text) {
+        zoomTl.to(
+          step3Text,
+          { yPercent: -25, autoAlpha: 0, duration: 0.18, ease: 'power2.in' },
+          0.85,
+        );
+      }
+
+      if (img3) {
+        zoomTl.to(
+          img3,
+          { opacity: 0, scale: 1.04, duration: 0.22, ease: 'power1.inOut' },
+          0.85,
+        );
+      }
+
+      if (img4) {
+        zoomTl.fromTo(
+          img4,
+          { autoAlpha: 0, scale: 1.06 },
+          { autoAlpha: 1, scale: 1, duration: 0.24, ease: 'power1.inOut' },
+          0.86,
+        );
+      }
+
+      if (step4Text) {
+        zoomTl.fromTo(
+          step4Text,
+          { yPercent: 30, autoAlpha: 0 },
+          { yPercent: 0, autoAlpha: 1, duration: 0.24, ease: 'power2.out' },
+          0.90,
+        );
+      }
+
+      // Reduced-motion safety fallback
+      const clearTargets = [...lines, ...copy].filter(Boolean);
       if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
         gsap.set(introLayer, { autoAlpha: 0 });
-        gsap.set([...lines, ...copy], { clearProps: 'all' });
-        gsap.set(introSection, { opacity: 1, yPercent: 0 });
+        if (clearTargets.length > 0) {
+          gsap.set(clearTargets, { clearProps: 'all' });
+        }
+        if (step1Text) gsap.set(step1Text, { autoAlpha: 1, yPercent: 0 });
         return;
       }
 
@@ -480,42 +561,37 @@ export default function CreativeStudioHero({
           'rise',
         );
 
-      tl.addLabel('title', `rise+=${INTRO.riseDuration - INTRO.titleLead}`).fromTo(
-        lines,
-        { yPercent: 105, y: 0 },
-        {
-          yPercent: 0,
-          duration: INTRO.titleDuration,
-          stagger: INTRO.titleStagger,
-          ease: INTRO.titleEase,
-        },
-        'title',
-      );
+      if (validLines.length > 0) {
+        tl.addLabel('title', `rise+=${INTRO.riseDuration - INTRO.titleLead}`).fromTo(
+          validLines,
+          { yPercent: 105, y: 0 },
+          {
+            yPercent: 0,
+            duration: INTRO.titleDuration,
+            stagger: INTRO.titleStagger,
+            ease: INTRO.titleEase,
+          },
+          'title',
+        );
+      }
 
       tl.set(logo, { autoAlpha: 0 }, `rise+=${INTRO.riseDuration}`).set(target, { opacity: 1 }, '<');
 
+      const validCopy = copy.filter(Boolean);
+
       tl.addLabel('page', `rise+=${INTRO.riseDuration - INTRO.pageLead}`)
-        .to(introLayer, { autoAlpha: 0, duration: INTRO.pageFade, ease: 'none' }, 'page')
-        .fromTo(
-          content.current,
-          { y: INTRO.contentTravel, opacity: 0 },
-          {
-            y: 0,
-            opacity: 1,
-            duration: INTRO.contentDuration,
-            stagger: INTRO.contentStagger,
-            ease: INTRO.contentEase,
-          },
-          'page',
-        )
-        .fromTo(
-          visual,
-          { y: INTRO.imageTravel, opacity: 0 },
-          { y: 0, opacity: 1, duration: INTRO.contentDuration, ease: INTRO.contentEase },
-          'page',
-        )
-        .fromTo(
-          copy,
+        .to(introLayer, { autoAlpha: 0, duration: INTRO.pageFade, ease: 'none' }, 'page');
+
+      tl.fromTo(
+        imageFrame,
+        { y: INTRO.imageTravel, opacity: 0 },
+        { y: 0, opacity: 1, duration: INTRO.contentDuration, ease: INTRO.contentEase },
+        'page',
+      );
+
+      if (validCopy.length > 0) {
+        tl.fromTo(
+          validCopy,
           { yPercent: 105, y: 0 },
           {
             yPercent: 0,
@@ -525,6 +601,7 @@ export default function CreativeStudioHero({
           },
           `page+=${INTRO.copyDelay}`,
         );
+      }
 
       return () => {
         zoomTl.kill();
@@ -532,34 +609,6 @@ export default function CreativeStudioHero({
       };
     },
     { scope: root },
-  );
-
-  const half = Math.ceil(links.length / 2);
-  const handleLinkClick = (link: StudioLink) => {
-    if (link.onClick) {
-      link.onClick();
-    } else if (onNavigate) {
-      onNavigate('menu');
-    }
-  };
-
-  const barLink = (link: StudioLink, i: number) => (
-    <button
-      key={link.label}
-      type="button"
-      ref={collectBarLink}
-      data-flip-id={`link-${i}`}
-      onClick={() => handleLinkClick(link)}
-      className="group pointer-events-auto flex items-start gap-[0.6vw] opacity-0 will-change-[transform,opacity] text-[#21100B] hover:text-black cursor-pointer text-left"
-    >
-      <span
-        className="mt-[0.2em] text-[0.36em] font-light tabular-nums text-[#32140D]/70"
-        style={{ fontFamily: FONT_INDEX }}
-      >
-        {String(i + 1).padStart(2, '0')}
-      </span>
-      <RollingLabel text={link.label} />
-    </button>
   );
 
   return (
@@ -574,11 +623,10 @@ export default function CreativeStudioHero({
         } as React.CSSProperties
       }
     >
-
-
       {/* Main Hero Viewport Section */}
       <section className="relative w-full overflow-hidden">
         <div ref={stageRef} className="relative h-svh w-full flex flex-col justify-between overflow-hidden">
+          
           {/* Intro backdrop: dark page + white plate */}
           <div
             ref={introLayerRef}
@@ -654,14 +702,52 @@ export default function CreativeStudioHero({
               <MaskedLines lines={leftCopy} register={collectCopy} />
             </div>
 
-            {/* Visual: expands gracefully on scroll with strict aspect ratio */}
+            {/* Visual Container: Holds the 4 layered bakery images that transition smoothly with scroll */}
             <div className="z-30 justify-self-center flex items-center justify-center overflow-visible">
-              <img
-                ref={imageRef}
-                src={image}
-                alt="Artisanal Bakery Creation"
-                className="h-[42vh] w-[38.4vw] max-md:h-[30vh] max-md:w-[86vw] aspect-[16/10] md:aspect-[4/3] rounded-2xl bg-[#e6e6e3] object-cover object-center shadow-2xl will-change-transform border border-[#32140D]/12"
-              />
+              <div
+                ref={imageFrameRef}
+                className="relative h-[42vh] w-[38.4vw] max-md:h-[30vh] max-md:w-[86vw] aspect-[16/10] md:aspect-[4/3] rounded-2xl bg-[#e6e6e3] overflow-hidden shadow-2xl will-change-transform border border-[#32140D]/12"
+              >
+                {/* Image 1: Golden Honey Muffin (Morning Atelier) */}
+                <img
+                  ref={img1Ref}
+                  src={steps[0].image}
+                  alt={steps[0].alt}
+                  loading="eager"
+                  decoding="async"
+                  className="absolute inset-0 h-full w-full object-cover object-center will-change-[opacity,transform]"
+                />
+
+                {/* Image 2: Royal Desi Ghee Patashay (Heritage Mithai) */}
+                <img
+                  ref={img2Ref}
+                  src={steps[1].image}
+                  alt={steps[1].alt}
+                  loading="eager"
+                  decoding="async"
+                  className="absolute inset-0 h-full w-full object-cover object-center will-change-[opacity,transform]"
+                />
+
+                {/* Image 3: Lotus Biscoff Cake (Celebration Atelier) */}
+                <img
+                  ref={img3Ref}
+                  src={steps[2].image}
+                  alt={steps[2].alt}
+                  loading="lazy"
+                  decoding="async"
+                  className="absolute inset-0 h-full w-full object-cover object-center will-change-[opacity,transform]"
+                />
+
+                {/* Image 4: Golden Flaky Chicken Patty (Savory Patisserie) */}
+                <img
+                  ref={img4Ref}
+                  src={steps[3].image}
+                  alt={steps[3].alt}
+                  loading="lazy"
+                  decoding="async"
+                  className="absolute inset-0 h-full w-full object-cover object-center will-change-[opacity,transform]"
+                />
+              </div>
             </div>
 
             <div
@@ -677,35 +763,177 @@ export default function CreativeStudioHero({
           {/* Fullscreen gradient overlay for crisp text readability on full screen image */}
           <div
             ref={imageOverlayRef}
-            className="pointer-events-none absolute inset-0 z-35 bg-gradient-to-t from-black/85 via-black/45 to-black/15 opacity-0 will-change-[opacity]"
+            className="pointer-events-none absolute inset-0 z-35 bg-gradient-to-t from-black/92 via-black/55 to-black/25 opacity-0 will-change-[opacity]"
           />
 
-          {/* Connected Next Text Section (comes directly as text on full screen image, without box or border) */}
+          {/* Floating Interactive 4-Step Indicator Bar */}
           <div
-            ref={introSectionRef}
+            ref={indicatorsRef}
+            className="absolute top-6 right-6 md:top-8 md:right-10 z-45 flex items-center gap-1.5 sm:gap-2 bg-stone-900/60 backdrop-blur-md px-3 sm:px-4 py-1.5 rounded-full border border-white/20 text-xs shadow-xl"
+          >
+            {steps.map((s, idx) => (
+              <button
+                key={idx}
+                type="button"
+                onClick={() => scrollToStep(idx)}
+                className={`flex items-center gap-1.5 px-2.5 sm:px-3 py-1 rounded-full text-[11px] font-mono tracking-wider transition-all duration-300 cursor-pointer ${
+                  activeStep === idx
+                    ? 'bg-amber-400 text-stone-950 font-black shadow-md shadow-amber-400/40 scale-105'
+                    : 'text-white/70 hover:text-white hover:bg-white/10'
+                }`}
+              >
+                <span>{s.step.split(' ')[0]}</span>
+                <span className="hidden sm:inline font-sans text-[10px] font-semibold uppercase tracking-normal">
+                  {idx === 0 ? 'Muffins' : idx === 1 ? 'Mithai' : idx === 2 ? 'Cakes' : 'Savory'}
+                </span>
+              </button>
+            ))}
+          </div>
+
+          {/* ------------------------------------------------------------------ */}
+          {/* STEP 1 TEXT SECTION: Morning Atelier (Original Font Design Style)  */}
+          {/* ------------------------------------------------------------------ */}
+          <div
+            ref={step1TextRef}
             className="absolute bottom-8 sm:bottom-12 md:bottom-16 left-0 right-0 z-40 px-[4vw] md:px-[6vw] grid gap-[3vw] md:grid-cols-2 items-end pointer-events-auto will-change-[transform,opacity]"
           >
             <div>
               <p className="flex items-center gap-[0.6vw] text-[1.15vw] max-md:gap-[2vw] max-md:text-[13px] text-amber-300 font-mono uppercase tracking-wider font-bold drop-shadow-[0_2px_8px_rgba(0,0,0,0.85)]">
                 <span className="size-[0.7vw] rounded-full bg-amber-400 max-md:size-[7px] animate-pulse drop-shadow" />
-                <span ref={collectIntroText}>
-                  {intro.label}
-                </span>
+                <span>{steps[0].badge} · {steps[0].step}</span>
               </p>
-              <h2
-                ref={collectIntroText}
-                className="mt-[1.5vh] text-[2.5vw] font-serif font-black tracking-[-0.03em] max-md:text-[24px] text-white leading-[1.15] drop-shadow-[0_2px_12px_rgba(0,0,0,0.9)]"
-              >
-                {intro.heading}
+              <h2 className="mt-[1.5vh] text-[2.6vw] font-serif font-black tracking-[-0.03em] max-md:text-[24px] text-white leading-[1.15] drop-shadow-[0_2px_12px_rgba(0,0,0,0.9)]">
+                {steps[0].heading}
               </h2>
             </div>
-            <p
-              ref={collectIntroText}
-              className="text-[2.2vw] leading-[1.3] font-normal tracking-[-0.03em] max-md:text-[18px] text-white/95 font-serif drop-shadow-[0_2px_10px_rgba(0,0,0,0.85)] max-w-2xl"
-            >
-              {intro.lead}
-            </p>
+            <div className="space-y-4">
+              <p className="text-[2.0vw] leading-[1.32] font-normal tracking-[-0.02em] max-md:text-[17px] text-white/95 font-serif drop-shadow-[0_2px_10px_rgba(0,0,0,0.85)] max-w-2xl">
+                {steps[0].lead}
+              </p>
+              <div className="flex items-center gap-3">
+                <button
+                  type="button"
+                  onClick={() => onNavigate && onNavigate('menu')}
+                  className="group inline-flex items-center gap-2 px-5 py-2.5 rounded-full bg-amber-400 hover:bg-amber-300 text-stone-950 font-bold text-xs uppercase tracking-wider shadow-lg shadow-amber-400/30 transition-all transform hover:-translate-y-0.5 active:translate-y-0 cursor-pointer"
+                >
+                  <span>{steps[0].ctaText}</span>
+                  <ArrowRight className="w-3.5 h-3.5 transition-transform group-hover:translate-x-1" />
+                </button>
+                <span className="text-xs font-mono text-amber-300/80 uppercase tracking-wider">
+                  {steps[0].subHighlight}
+                </span>
+              </div>
+            </div>
           </div>
+
+          {/* ------------------------------------------------------------------ */}
+          {/* STEP 2 TEXT SECTION: Royal Tradition (Original Font Design Style)  */}
+          {/* ------------------------------------------------------------------ */}
+          <div
+            ref={step2TextRef}
+            className="absolute bottom-8 sm:bottom-12 md:bottom-16 left-0 right-0 z-40 px-[4vw] md:px-[6vw] grid gap-[3vw] md:grid-cols-2 items-end pointer-events-auto will-change-[transform,opacity]"
+          >
+            <div>
+              <p className="flex items-center gap-[0.6vw] text-[1.15vw] max-md:gap-[2vw] max-md:text-[13px] text-amber-300 font-mono uppercase tracking-wider font-bold drop-shadow-[0_2px_8px_rgba(0,0,0,0.85)]">
+                <span className="size-[0.7vw] rounded-full bg-amber-400 max-md:size-[7px] animate-pulse drop-shadow" />
+                <span>{steps[1].badge} · {steps[1].step}</span>
+              </p>
+              <h2 className="mt-[1.5vh] text-[2.6vw] font-serif font-black tracking-[-0.03em] max-md:text-[24px] text-white leading-[1.15] drop-shadow-[0_2px_12px_rgba(0,0,0,0.9)]">
+                {steps[1].heading}
+              </h2>
+            </div>
+            <div className="space-y-4">
+              <p className="text-[2.0vw] leading-[1.32] font-normal tracking-[-0.02em] max-md:text-[17px] text-white/95 font-serif drop-shadow-[0_2px_10px_rgba(0,0,0,0.85)] max-w-2xl">
+                {steps[1].lead}
+              </p>
+              <div className="flex items-center gap-3">
+                <button
+                  type="button"
+                  onClick={() => onNavigate && onNavigate('menu')}
+                  className="group inline-flex items-center gap-2 px-5 py-2.5 rounded-full bg-amber-400 hover:bg-amber-300 text-stone-950 font-bold text-xs uppercase tracking-wider shadow-lg shadow-amber-400/30 transition-all transform hover:-translate-y-0.5 active:translate-y-0 cursor-pointer"
+                >
+                  <span>{steps[1].ctaText}</span>
+                  <ArrowRight className="w-3.5 h-3.5 transition-transform group-hover:translate-x-1" />
+                </button>
+                <span className="text-xs font-mono text-amber-300/80 uppercase tracking-wider">
+                  {steps[1].subHighlight}
+                </span>
+              </div>
+            </div>
+          </div>
+
+          {/* ------------------------------------------------------------------ */}
+          {/* STEP 3 TEXT SECTION: Celebration Atelier (Original Font Design Style)*/}
+          {/* ------------------------------------------------------------------ */}
+          <div
+            ref={step3TextRef}
+            className="absolute bottom-8 sm:bottom-12 md:bottom-16 left-0 right-0 z-40 px-[4vw] md:px-[6vw] grid gap-[3vw] md:grid-cols-2 items-end pointer-events-auto will-change-[transform,opacity]"
+          >
+            <div>
+              <p className="flex items-center gap-[0.6vw] text-[1.15vw] max-md:gap-[2vw] max-md:text-[13px] text-amber-300 font-mono uppercase tracking-wider font-bold drop-shadow-[0_2px_8px_rgba(0,0,0,0.85)]">
+                <span className="size-[0.7vw] rounded-full bg-amber-400 max-md:size-[7px] animate-pulse drop-shadow" />
+                <span>{steps[2].badge} · {steps[2].step}</span>
+              </p>
+              <h2 className="mt-[1.5vh] text-[2.6vw] font-serif font-black tracking-[-0.03em] max-md:text-[24px] text-white leading-[1.15] drop-shadow-[0_2px_12px_rgba(0,0,0,0.9)]">
+                {steps[2].heading}
+              </h2>
+            </div>
+            <div className="space-y-4">
+              <p className="text-[2.0vw] leading-[1.32] font-normal tracking-[-0.02em] max-md:text-[17px] text-white/95 font-serif drop-shadow-[0_2px_10px_rgba(0,0,0,0.85)] max-w-2xl">
+                {steps[2].lead}
+              </p>
+              <div className="flex items-center gap-3">
+                <button
+                  type="button"
+                  onClick={() => onNavigate && onNavigate('menu')}
+                  className="group inline-flex items-center gap-2 px-5 py-2.5 rounded-full bg-amber-400 hover:bg-amber-300 text-stone-950 font-bold text-xs uppercase tracking-wider shadow-lg shadow-amber-400/30 transition-all transform hover:-translate-y-0.5 active:translate-y-0 cursor-pointer"
+                >
+                  <span>{steps[2].ctaText}</span>
+                  <ArrowRight className="w-3.5 h-3.5 transition-transform group-hover:translate-x-1" />
+                </button>
+                <span className="text-xs font-mono text-amber-300/80 uppercase tracking-wider">
+                  {steps[2].subHighlight}
+                </span>
+              </div>
+            </div>
+          </div>
+
+          {/* ------------------------------------------------------------------ */}
+          {/* STEP 4 TEXT SECTION: Savory Patisserie (New 4th Section Added!)    */}
+          {/* ------------------------------------------------------------------ */}
+          <div
+            ref={step4TextRef}
+            className="absolute bottom-8 sm:bottom-12 md:bottom-16 left-0 right-0 z-40 px-[4vw] md:px-[6vw] grid gap-[3vw] md:grid-cols-2 items-end pointer-events-auto will-change-[transform,opacity]"
+          >
+            <div>
+              <p className="flex items-center gap-[0.6vw] text-[1.15vw] max-md:gap-[2vw] max-md:text-[13px] text-amber-300 font-mono uppercase tracking-wider font-bold drop-shadow-[0_2px_8px_rgba(0,0,0,0.85)]">
+                <span className="size-[0.7vw] rounded-full bg-amber-400 max-md:size-[7px] animate-pulse drop-shadow" />
+                <span>{steps[3].badge} · {steps[3].step}</span>
+              </p>
+              <h2 className="mt-[1.5vh] text-[2.6vw] font-serif font-black tracking-[-0.03em] max-md:text-[24px] text-white leading-[1.15] drop-shadow-[0_2px_12px_rgba(0,0,0,0.9)]">
+                {steps[3].heading}
+              </h2>
+            </div>
+            <div className="space-y-4">
+              <p className="text-[2.0vw] leading-[1.32] font-normal tracking-[-0.02em] max-md:text-[17px] text-white/95 font-serif drop-shadow-[0_2px_10px_rgba(0,0,0,0.85)] max-w-2xl">
+                {steps[3].lead}
+              </p>
+              <div className="flex items-center gap-3">
+                <button
+                  type="button"
+                  onClick={() => onNavigate && onNavigate('menu')}
+                  className="group inline-flex items-center gap-2 px-5 py-2.5 rounded-full bg-amber-400 hover:bg-amber-300 text-stone-950 font-bold text-xs uppercase tracking-wider shadow-lg shadow-amber-400/30 transition-all transform hover:-translate-y-0.5 active:translate-y-0 cursor-pointer"
+                >
+                  <span>{steps[3].ctaText}</span>
+                  <ArrowRight className="w-3.5 h-3.5 transition-transform group-hover:translate-x-1" />
+                </button>
+                <span className="text-xs font-mono text-amber-300/80 uppercase tracking-wider">
+                  {steps[3].subHighlight}
+                </span>
+              </div>
+            </div>
+          </div>
+
         </div>
       </section>
     </div>

@@ -14,7 +14,7 @@ export default function FindUsPage() {
   const activeBranchData = BRANCHES.find(b => b.id === selectedBranch) || BRANCHES[0];
 
   return (
-    <div className="min-h-screen bg-brand-cream text-brand-chocolate py-12 sm:py-20 px-4 sm:px-6 lg:px-12">
+    <div className="relative min-h-screen bg-brand-cream/80 text-brand-chocolate py-12 sm:py-20 px-4 sm:px-6 lg:px-12 overflow-hidden">
       <div className="max-w-6xl mx-auto space-y-12 sm:space-y-16">
         
         {/* Editorial Header */}

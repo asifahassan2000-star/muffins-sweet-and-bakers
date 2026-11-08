@@ -194,14 +194,20 @@ export default function SplitScreenSlider({
 
       function buildChange(current: Parts, next: Parts) {
         const change = gsap.timeline({ defaults: { ease: 'none' } });
+        if (!current?.left || !current?.right || !next?.left || !next?.right) {
+          return change;
+        }
 
-        const move = (elements: (Element | null)[], start: number, end: number, length: number) =>
+        const move = (elements: (Element | null | undefined)[], start: number, end: number, length: number) => {
+          const targets = elements.filter(Boolean) as Element[];
+          if (targets.length === 0) return;
           change.fromTo(
-            elements,
+            targets,
             { yPercent: start },
             { yPercent: end, duration: length, immediateRender: start !== 0 },
             (1 - length) / 2,
           );
+        };
 
         // Wipe masks in opposite directions
         move([next.left.mask], 100, 0, 1);
@@ -234,17 +240,19 @@ export default function SplitScreenSlider({
           reelTimeline.add(buildChange(parts[i], parts[i + 1]));
         }
 
-        ScrollTrigger.create({
-          trigger: rootRef.current,
-          start: 'top top',
-          end: () => '+=' + window.innerHeight * CONFIG.SCROLL_PER_SLIDE * (slides.length - 1),
-          pin: pinRef.current,
-          pinSpacing: true,
-          anticipatePin: 1,
-          invalidateOnRefresh: true,
-          animation: reelTimeline,
-          scrub: CONFIG.SCRUB,
-        });
+        if (rootRef.current && pinRef.current) {
+          ScrollTrigger.create({
+            trigger: rootRef.current,
+            start: 'top top',
+            end: () => '+=' + window.innerHeight * CONFIG.SCROLL_PER_SLIDE * (slides.length - 1),
+            pin: pinRef.current,
+            pinSpacing: true,
+            anticipatePin: 1,
+            invalidateOnRefresh: true,
+            animation: reelTimeline,
+            scrub: CONFIG.SCRUB,
+          });
+        }
       });
 
       const onLoad = () => ScrollTrigger.refresh();

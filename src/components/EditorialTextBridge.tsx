@@ -1,6 +1,7 @@
 import React from 'react';
 import { ArrowDown, Sparkles, Clock, Heart, Award } from 'lucide-react';
 import MuffinnsLogo from './MuffinnsLogo';
+import SilkRibbonBackground from './SilkRibbonBackground';
 
 interface EditorialTextBridgeProps {
   onNavigate: (view: 'home' | 'menu' | 'story' | 'contact' | 'find-us' | 'theme-studio' | 'tracker') => void;
@@ -10,11 +11,11 @@ export default function EditorialTextBridge({ onNavigate }: EditorialTextBridgeP
   return (
     <section
       id="editorial-statement"
-      className="relative w-full bg-brand-cream text-brand-chocolate py-28 sm:py-36 md:py-44 px-6 lg:px-12 scroll-mt-16 overflow-hidden border-b border-brand-caramel/15"
+      className="relative w-full bg-brand-cream/80 text-brand-chocolate py-28 sm:py-36 md:py-44 px-6 lg:px-12 scroll-mt-16 overflow-hidden border-b border-brand-caramel/15"
       aria-label="Bakery Philosophy and Heritage Statement"
     >
-      {/* Subtle background ambient grain / glow */}
-      <div className="pointer-events-none absolute inset-0 bg-radial from-brand-caramel/10 via-transparent to-transparent opacity-70" />
+      {/* Component-020 Silk Ribbons Interactive Background */}
+      <SilkRibbonBackground />
 
       {/* Giant Text Behind Editorial Watermark */}
       <div 

@@ -3,7 +3,7 @@ import { motion } from 'motion/react';
 import { ArrowRight, ShoppingBag, MapPin, Phone, Clock, Star, Check } from 'lucide-react';
 import { MenuItem } from '../types';
 import MuffinnsLogo from './MuffinnsLogo';
-import AmbientBakerySound from './AmbientBakerySound';
+import SilkRibbonBackground from './SilkRibbonBackground';
 
 interface HomeEditorialSectionsProps {
   onNavigate: (view: 'home' | 'menu' | 'story' | 'contact' | 'find-us' | 'theme-studio' | 'tracker' | 'admin') => void;
@@ -56,7 +56,9 @@ export default function HomeEditorialSections({
   addedItemId
 }: HomeEditorialSectionsProps) {
   return (
-    <div className="w-full bg-brand-cream text-brand-chocolate space-y-28 sm:space-y-36 md:space-y-44 pt-12 pb-24">
+    <div className="relative w-full bg-brand-cream/80 text-brand-chocolate space-y-28 sm:space-y-36 md:space-y-44 pt-12 pb-24 overflow-hidden">
+      {/* Component-020 Silk Ribbons Interactive Background */}
+      <SilkRibbonBackground />
       
       {/* ================= 1. SMALL FEATURED COLLECTION (3-4 PRODUCTS) ================= */}
       <section className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-12 space-y-10 sm:space-y-14 overflow-hidden">
@@ -427,11 +429,6 @@ export default function HomeEditorialSections({
                 Artisanal bakery and generational sweet shop crafting pure desi ghee mithai, handcrafted muffins, and bespoke celebration cakes.
               </p>
 
-              {/* Ambient Audio Toggle */}
-              <div className="pt-2 flex items-center gap-3">
-                <span className="text-xs text-brand-chocolate/60 uppercase tracking-wider font-semibold">Kitchen Sound:</span>
-                <AmbientBakerySound />
-              </div>
             </div>
 
             {/* Col 2: Navigation Links */}
