@@ -483,72 +483,14 @@ export default function App() {
         )}
       </AnimatePresence>
       
-      {/* Luxury Atelier Ambient Background Light Atmosphere */}
-      {theme === 'luxury_main' && (
-        <div className="fixed inset-0 pointer-events-none overflow-hidden z-0" aria-hidden="true">
-          <div className="absolute top-10 right-1/4 w-[600px] h-[600px] bg-gradient-to-br from-[#F4B34D]/8 via-[#E94F16]/5 to-transparent rounded-full blur-3xl pointer-events-none" />
-          <div className="absolute bottom-20 left-10 w-[700px] h-[700px] bg-gradient-to-tr from-[#FF792B]/6 via-[#32140D]/3 to-transparent rounded-full blur-3xl pointer-events-none" />
-        </div>
-      )}
+      {/* Luxury Ambient Background Glow */}
+      <div className="fixed inset-0 pointer-events-none overflow-hidden z-0" aria-hidden="true">
+        <div className="absolute top-10 right-1/4 w-[600px] h-[600px] bg-[#E8B896]/10 rounded-full blur-3xl pointer-events-none" />
+        <div className="absolute bottom-20 left-10 w-[700px] h-[700px] bg-[#D25027]/5 rounded-full blur-3xl pointer-events-none" />
+      </div>
 
-      {/* Cosmic Space Nebula & Orbiting Muffin Asteroids System for Muffin Galaxy theme */}
-      {theme === 'muffin_galaxy' && (
-        <div className="fixed inset-0 pointer-events-none overflow-hidden z-0">
-          {/* Ambient Cosmic Nebula Glow Clouds */}
-          <div className="absolute top-0 left-1/4 w-[500px] h-[500px] bg-gradient-to-br from-[#F4A261]/20 via-[#E76F51]/15 to-transparent rounded-full blur-3xl animate-pulse pointer-events-none" />
-          <div className="absolute bottom-10 right-10 w-[600px] h-[600px] bg-gradient-to-tr from-[#2A1B3D]/80 via-[#E9C46A]/15 to-transparent rounded-full blur-3xl animate-pulse pointer-events-none" />
-          
-          {/* Twinkling Cosmic Stars & Floating Muffin Asteroids */}
-          {[...Array(30)].map((_, i) => {
-            const isMuffin = i % 5 === 0;
-            const isLargeStar = i % 2 === 0;
-            const size = isMuffin ? 24 : isLargeStar ? 6 : 3;
-            const left = `${(i * 3.3) % 100}%`;
-            const colors = ['#F4A261', '#E76F51', '#E9C46A', '#FFF8F0', '#E9C46A'];
-            const color = colors[i % colors.length];
-
-            return (
-              <motion.div
-                key={`galaxy-star-${i}`}
-                initial={{ y: `${(i * 12) % 100}vh`, opacity: 0.2 }}
-                animate={{ 
-                  y: [`${(i * 12) % 100}vh`, `${((i * 12) + 100) % 110}vh`],
-                  x: [0, (i % 2 === 0 ? 30 : -30)],
-                  opacity: [0.2, 0.9, 0.3],
-                  scale: isMuffin ? [0.9, 1.15, 0.9] : [0.8, 1.3, 0.8]
-                }}
-                transition={{
-                  duration: isMuffin ? 18 + i : 8 + (i % 5),
-                  repeat: Infinity,
-                  ease: "easeInOut"
-                }}
-                style={{
-                  position: 'absolute',
-                  left,
-                  top: '0%',
-                  width: size,
-                  height: size,
-                  filter: `drop-shadow(0 0 8px ${color})`,
-                }}
-              >
-                {isMuffin ? (
-                  <span className="text-lg leading-none select-none filter drop-shadow-[0_0_10px_rgba(244,162,97,0.8)]">
-                    🧁
-                  </span>
-                ) : (
-                  <div 
-                    className="w-full h-full rounded-full"
-                    style={{ backgroundColor: color }}
-                  />
-                )}
-              </motion.div>
-            );
-          })}
-        </div>
-      )}
-      
       {/* ================= CLEAN EDITORIAL HEADER & SLIDE-OUT SIDEBAR ================= */}
-      {/* On homepage, Hero's animated header seamlessly takes charge; on subpages, Header provides persistent navigation */}
+      {/* On homepage, Hero's header takes charge; on subpages, Header provides persistent navigation */}
       {activeView !== 'home' && (
         <Header
           activeView={activeView}
@@ -566,8 +508,6 @@ export default function App() {
         onNavigate={handleNavigate}
         onOpenCart={() => setIsCartOpen(true)}
         cartCount={totalCartCount}
-        currentTheme={theme}
-        onToggleTheme={() => setTheme(prev => prev === 'luxury_main' ? 'muffin_galaxy' : 'luxury_main')}
       />
 
       {/* Persistent Offline Orders Synchronization Banner */}
@@ -600,35 +540,13 @@ export default function App() {
                 cartCount={totalCartCount}
                 theme={theme}
               />
-              
-              {/* Bespoke Creative Studio Hero & Showcase with generous distance */}
-              <div className="relative w-full my-20 sm:my-32 md:my-40">
-                <CreativeStudioHero onNavigate={handleNavigate} />
-              </div>
 
-              {/* Editorial Text Bridge with generous distance before scroll showreel */}
-              <div className="relative w-full my-20 sm:my-32 md:my-40">
-                <EditorialTextBridge onNavigate={handleNavigate} />
-              </div>
-              
-              {/* Pinned Split-Screen Reel Showreel with generous distance */}
-              <div className="relative w-full my-20 sm:my-32 md:my-40">
-                <SplitScreenSlider onNavigate={handleNavigate} />
-              </div>
-              
-              {/* Editorial Outro with generous distance and curated catalogue introduction */}
-              <div className="relative w-full my-20 sm:my-32 md:my-40">
-                <EditorialSliderOutro onNavigate={handleNavigate} />
-              </div>
-
-              {/* Complete Home Editorial Sections with generous breathing room */}
-              <div className="relative w-full my-20 sm:my-32 md:my-40">
-                <HomeEditorialSections
-                  onNavigate={handleNavigate}
-                  onAddToCart={handleAddFeaturedItem}
-                  addedItemId={recentlyAddedId}
-                />
-              </div>
+              {/* Complete Home Editorial Sections: Featured Signatures, 1988 Story Bridge, 7 Branches, & Footer */}
+              <HomeEditorialSections
+                onNavigate={handleNavigate}
+                onAddToCart={handleAddFeaturedItem}
+                addedItemId={recentlyAddedId}
+              />
             </motion.div>
           )}
 
@@ -671,7 +589,7 @@ export default function App() {
               animate={{ opacity: 1, y: 0 }}
               exit={{ opacity: 0, y: -10 }}
             >
-              <StoryPage onNavigateToMenu={() => handleNavigate('menu')} />
+              <StoryPage onNavigateToMenu={() => handleNavigate('menu')} onNavigate={(view: string) => handleNavigate(view as AppView)} />
             </motion.div>
           )}
 

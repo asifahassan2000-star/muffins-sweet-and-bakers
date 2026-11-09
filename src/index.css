@@ -1,25 +1,22 @@
-@import url('https://fonts.googleapis.com/css2?family=Caveat:wght@400;600;700&family=Cormorant+Garamond:ital,wght@0,400;0,600;0,700;1,400;1,600&family=Fraunces:ital,opsz,wght@0,9..144,300..900;1,9..144,300..900&family=Outfit:wght@300;400;500;600;700;800&family=Playfair+Display:ital,wght@0,400;0,500;0,600;0,700;1,400;1,600&family=Fira+Code:wght@400;500&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,500;0,600;0,700;1,400;1,600&family=Plus+Jakarta+Sans:wght@300;400;500;600;700&display=swap');
 @import "tailwindcss";
 
 @theme {
-  --font-sans: "Outfit", "Inter", system-ui, sans-serif;
-  --font-serif: "Cormorant Garamond", "Playfair Display", Georgia, serif;
-  --font-mono: "Fira Code", monospace;
-  --font-handwriting: "Caveat", cursive, sans-serif;
+  --font-sans: "Plus Jakarta Sans", system-ui, sans-serif;
+  --font-serif: "Cormorant Garamond", Georgia, serif;
 
-  /* Primary Default Theme: Muffinns Luxury Atelier */
-  --color-brand-cream: #FFFFFF;        /* Pure White primary website background */
-  --color-brand-sugar: #FCFAF8;        /* Soft crisp ivory card surface */
-  --color-brand-caramel: #E94F16;      /* Burnt Orange accents */
-  --color-brand-honey: #FF792B;        /* Tangerine highlight */
-  --color-brand-gold: #F4B34D;         /* Warm Amber glow */
-  --color-brand-chocolate: #32140D;    /* Dark Chocolate text & headings */
-  --color-brand-espresso: #21100B;     /* Deep Espresso border & contrast */
-  --color-brand-marshmallow: #FBF8F5;  /* Subtle plinth container */
-  --color-brand-glaze: rgba(233, 79, 22, 0.08);
+  /* Muffins Sweets & Bakers Artisanal Color Palette */
+  --color-brand-cream: #FAF7F2;
+  --color-brand-sugar: #FFFFFF;
+  --color-brand-caramel: #D25027;
+  --color-brand-honey: #E06338;
+  --color-brand-gold: #DDA15E;
+  --color-brand-chocolate: #21100B;
+  --color-brand-espresso: #140A07;
+  --color-brand-marshmallow: #F4EFE6;
+  --color-brand-glaze: rgba(210, 80, 39, 0.08);
 }
 
-/* Base custom interactive effects */
 @layer base {
   *, *::before, *::after {
     box-sizing: border-box;
@@ -37,12 +34,14 @@
     width: 100%;
     max-width: 100%;
     min-height: 100vh;
-    background-color: var(--color-brand-cream, #FFFFFF);
-    color: var(--color-brand-chocolate, #32140D);
+    background-color: #FAF7F2;
+    color: #21100B;
     font-family: var(--font-sans);
     overflow-x: hidden;
     margin: 0;
     padding: 0;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
   }
 
   #root {
@@ -52,160 +51,48 @@
     min-height: 100vh;
     display: flex;
     flex-direction: column;
+    background-color: #FAF7F2;
   }
 
-  img, video, iframe {
+  img, video {
     max-width: 100%;
     height: auto;
   }
 }
 
-/* Font helpers */
-.font-handwriting {
-  font-family: 'Caveat', cursive, sans-serif;
-}
-
+/* Elegant Typography & Card Utilities */
 .font-editorial {
-  font-family: 'Cormorant Garamond', 'Playfair Display', Georgia, serif;
+  font-family: var(--font-serif);
 }
 
-/* Custom premium visual elements */
-.glass-panel {
-  background: rgba(255, 255, 255, 0.92);
-  backdrop-filter: blur(16px);
-  -webkit-backdrop-filter: blur(16px);
-  border: 1px solid rgba(50, 20, 13, 0.08);
-}
-
-.dark-glass-panel {
-  background: rgba(33, 16, 11, 0.94);
-  backdrop-filter: blur(16px);
-  -webkit-backdrop-filter: blur(16px);
-  border: 1px solid rgba(244, 179, 77, 0.15);
-}
-
-/* 3D Rotator and floaters */
-@keyframes float {
-  0% { transform: translateY(0px) rotate(0deg); }
-  50% { transform: translateY(-10px) rotate(2deg); }
-  100% { transform: translateY(0px) rotate(0deg); }
-}
-
-@keyframes float-reverse {
-  0% { transform: translateY(0px) rotate(0deg); }
-  50% { transform: translateY(10px) rotate(-2deg); }
-  100% { transform: translateY(0px) rotate(0deg); }
-}
-
-.animate-float-slow {
-  animation: float 7s ease-in-out infinite;
-}
-
-.animate-float-reverse-slow {
-  animation: float-reverse 8s ease-in-out infinite;
-}
-
-/* Hide scrollbars for slick carousels */
-.no-scrollbar::-webkit-scrollbar {
-  display: none;
-}
-.no-scrollbar {
-  -ms-overflow-style: none;
-  scrollbar-width: none;
-}
-
-/* Global Theme Transition */
-body, div, header, section, footer, button, input, h1, h2, h3, h4, h5, h6, p, span, a, label {
-  transition: background-color 0.4s ease-out, border-color 0.4s ease-out, color 0.4s ease-out;
-}
-
-/* ================= 1. MAIN THEME: LUXURY ATELIER ================= */
-/* Pure White: #FFFFFF — primary website background.
-   Dark Chocolate: #32140D
-   Deep Espresso: #21100B
-   Burnt Orange: #E94F16 accents
-   Tangerine: #FF792B
-   Warm Amber: #F4B34D
-*/
-.theme-luxury_main {
-  --color-brand-cream: #FFFFFF;
-  --color-brand-sugar: #FCFAF8;
-  --color-brand-caramel: #E94F16;
-  --color-brand-honey: #FF792B;
-  --color-brand-gold: #F4B34D;
-  --color-brand-chocolate: #32140D;
-  --color-brand-espresso: #21100B;
-  --color-brand-marshmallow: #FBF8F5;
-  --color-brand-glaze: rgba(233, 79, 22, 0.08);
-}
-
-.theme-luxury_main .luxury-3d-card {
+.artisan-card {
   background: #FFFFFF;
-  border: 1px solid rgba(50, 20, 13, 0.08);
-  border-radius: 16px;
-  box-shadow: 0 10px 30px -10px rgba(50, 20, 13, 0.08), 0 0 1px rgba(50, 20, 13, 0.12);
-  transition: all 0.35s cubic-bezier(0.16, 1, 0.3, 1);
+  border: 1px solid rgba(33, 16, 11, 0.07);
+  border-radius: 14px;
+  box-shadow: 0 4px 20px -2px rgba(33, 16, 11, 0.04);
+  transition: transform 0.3s cubic-bezier(0.16, 1, 0.3, 1), box-shadow 0.3s cubic-bezier(0.16, 1, 0.3, 1), border-color 0.3s ease;
 }
 
-.theme-luxury_main .luxury-3d-card:hover {
-  transform: translateY(-6px);
-  border-color: rgba(233, 79, 22, 0.3);
-  box-shadow: 0 20px 40px -12px rgba(233, 79, 22, 0.15), 0 0 25px rgba(244, 179, 77, 0.1);
+.artisan-card:hover {
+  transform: translateY(-4px);
+  border-color: rgba(210, 80, 39, 0.25);
+  box-shadow: 0 16px 36px -4px rgba(33, 16, 11, 0.08);
 }
 
-/* ================= 2. GALAXY MUFFINS THEME ================= */
-.theme-muffin_galaxy {
-  --color-brand-cream: #1A1423; /* Deep space purple 🪐 */
-  --color-brand-sugar: #2A1B3D; /* Cosmic nebula panel surface */
-  --color-brand-caramel: #F4A261; /* Muffin-orange accent */
-  --color-brand-honey: #E76F51; /* Popcorn-red accent */
-  --color-brand-gold: #E9C46A; /* Stardust gold accent */
-  --color-brand-chocolate: #FFF8F0; /* Bright star text */
-  --color-brand-espresso: #372254;
-  --color-brand-marshmallow: #372254; /* Soft cosmic lavender container */
-  --color-brand-glaze: rgba(244, 162, 97, 0.22);
+/* Subtle image zoom container */
+.overflow-zoom {
+  overflow: hidden;
 }
 
-@keyframes galaxy-pulse {
-  0% { filter: drop-shadow(0 0 10px rgba(244, 162, 97, 0.4)) brightness(1); }
-  50% { filter: drop-shadow(0 0 22px rgba(231, 111, 81, 0.8)) brightness(1.15); }
-  100% { filter: drop-shadow(0 0 10px rgba(244, 162, 97, 0.4)) brightness(1); }
+.overflow-zoom img {
+  transition: transform 0.6s cubic-bezier(0.16, 1, 0.3, 1);
 }
 
-@keyframes cosmic-orbit {
-  0% { transform: rotate(0deg); }
-  100% { transform: rotate(360deg); }
-}
-
-@keyframes stardust-glow {
-  0%, 100% { opacity: 0.35; transform: scale(0.9); }
-  50% { opacity: 0.95; transform: scale(1.15); }
-}
-
-.theme-muffin_galaxy svg {
-  animation: galaxy-pulse 4s ease-in-out infinite;
-}
-
-.cosmic-orbit-ring {
-  animation: cosmic-orbit 25s linear infinite;
-}
-
-.stardust-particle {
-  animation: stardust-glow 3s ease-in-out infinite;
+.overflow-zoom:hover img {
+  transform: scale(1.05);
 }
 
 /* Print styles for Kitchen Receipt POS view */
-@keyframes receiptFadeIn {
-  0% {
-    opacity: 0;
-    transform: translateY(6px);
-  }
-  100% {
-    opacity: 1;
-    transform: translateY(0);
-  }
-}
-
 @media print {
   body > * {
     visibility: hidden !important;
@@ -230,7 +117,6 @@ body, div, header, section, footer, button, input, h1, h2, h3, h4, h5, h6, p, sp
     font-family: 'Courier New', Courier, monospace !important;
     box-shadow: none !important;
     border: none !important;
-    animation: receiptFadeIn 0.3s ease-out forwards !important;
   }
 
   @page {
@@ -238,23 +124,3 @@ body, div, header, section, footer, button, input, h1, h2, h3, h4, h5, h6, p, sp
     margin: 0mm;
   }
 }
-
-/* Hero & Showcase Focus Typography: Deep Dark Brown and Solid Black - No Orange, No Green */
-.hero-headline-dark,
-#root section h1,
-#root section h1 > div {
-  color: #21100B !important;
-  -webkit-text-fill-color: #21100B !important;
-  text-shadow: 0 4px 20px rgba(33, 16, 11, 0.12) !important;
-  filter: none !important;
-}
-
-#root section p.hero-subtitle-clean,
-#root section p.hero-subtitle-clean > div {
-  color: #21100B !important;
-  -webkit-text-fill-color: #21100B !important;
-  text-shadow: none !important;
-}
-
-
-

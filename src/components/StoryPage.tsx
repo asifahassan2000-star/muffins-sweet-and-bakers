@@ -1,184 +1,319 @@
-import React from 'react';
-import { motion } from 'motion/react';
-import { ArrowRight, Sparkles, Heart, Award, ShieldCheck } from 'lucide-react';
+import { useRef } from 'react';
+import { gsap } from 'gsap';
+import { useGSAP } from '@gsap/react';
+import { ScrollTrigger } from 'gsap/ScrollTrigger';
+import { SplitText } from 'gsap/SplitText';
+import { ArrowRight } from 'lucide-react';
+import CreativeStudioHero from './CreativeStudioHero';
+
+gsap.registerPlugin(useGSAP, ScrollTrigger, SplitText);
+
+/* ------------------------------------------------------------------ */
+/*  Story Page — full animated experience                              */
+/*  Combines the CreativeStudioHero scroll animation at the top with   */
+/*  editorial story sections below, each revealed on scroll.           */
+/* ------------------------------------------------------------------ */
 
 interface StoryPageProps {
   onNavigateToMenu: () => void;
+  onNavigate?: (view: string) => void;
 }
 
-export default function StoryPage({ onNavigateToMenu }: StoryPageProps) {
+/* ------------------------------------------------------------------ */
+/*  Pillar Card — scroll-revealed craftsmanship section                */
+/* ------------------------------------------------------------------ */
+function PillarCard({
+  index,
+  label,
+  title,
+  description,
+}: {
+  index: string;
+  label: string;
+  title: string;
+  description: string;
+}) {
+  const ref = useRef<HTMLDivElement>(null);
+
+  useGSAP(() => {
+    if (!ref.current) return;
+    if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) return;
+
+    gsap.fromTo(
+      ref.current,
+      { y: 50, opacity: 0 },
+      {
+        y: 0,
+        opacity: 1,
+        duration: 1,
+        ease: 'expo.out',
+        scrollTrigger: {
+          trigger: ref.current,
+          start: 'top 85%',
+          once: true,
+        },
+      },
+    );
+  });
+
   return (
-    <div className="relative min-h-screen bg-brand-cream/80 text-brand-chocolate py-12 sm:py-20 px-4 sm:px-6 lg:px-12 overflow-hidden">
-      
-      {/* Background design and light image overlay */}
-      <div className="pointer-events-none absolute inset-0 select-none overflow-hidden" aria-hidden="true">
-        <img
-          src="/assets/images/hero_editorial_muffin_1794039141433.jpg"
-          alt=""
-          className="w-full h-full object-cover opacity-[0.04] scale-105 filter blur-[0.5px]"
-          loading="lazy"
-        />
-        <div className="absolute inset-0 bg-radial from-brand-caramel/5 via-brand-cream/60 to-brand-cream/70" />
-      </div>
+    <div ref={ref} className="space-y-4 opacity-0">
+      <span className="font-mono text-xs text-[#D25027] font-bold tracking-[0.2em] uppercase">
+        {index} / {label}
+      </span>
+      <h3 className="font-serif text-2xl lg:text-3xl text-[#21100B] font-bold leading-tight tracking-[-0.02em]">
+        {title}
+      </h3>
+      <p className="text-sm lg:text-base text-[#21100B]/70 leading-relaxed font-sans">
+        {description}
+      </p>
+    </div>
+  );
+}
 
-      {/* Heritage watermark graphic */}
-      <div 
-        className="pointer-events-none absolute -top-12 -right-10 select-none overflow-hidden opacity-[0.035] text-[#21100B]" 
-        aria-hidden="true"
-      >
-        <span className="font-serif text-[24vw] font-black leading-none uppercase block">
-          1988
-        </span>
-      </div>
+/* ------------------------------------------------------------------ */
+/*  Scroll-revealed text block                                         */
+/* ------------------------------------------------------------------ */
+function RevealSection({
+  children,
+  className = '',
+}: {
+  children: React.ReactNode;
+  className?: string;
+}) {
+  const ref = useRef<HTMLDivElement>(null);
 
-      <div className="relative z-10 max-w-5xl mx-auto space-y-16 sm:space-y-24">
-        
-        {/* Editorial Header */}
-        <motion.div 
-          initial={{ opacity: 0, y: 30 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.8, ease: [0.16, 1, 0.3, 1] }}
-          className="max-w-4xl space-y-5"
-        >
-          <div className="inline-flex items-center gap-2.5 px-3.5 py-1.5 rounded-full bg-brand-sugar border border-brand-caramel/25 text-brand-caramel text-xs font-mono uppercase tracking-[0.25em] font-bold shadow-xs">
-            <span className="size-2 rounded-full bg-brand-caramel animate-pulse" />
-            <span>Our Heritage</span>
-            <span aria-hidden="true" className="text-brand-honey">·</span>
-            <span>Bahawalpur, Punjab</span>
-          </div>
+  useGSAP(() => {
+    if (!ref.current) return;
+    if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) return;
 
-          <h1 className="font-serif text-4xl sm:text-6xl text-brand-chocolate font-black tracking-tight leading-[1.1] text-balance">
-            Where Generational Mithai Craft Meets Modern Artisanal Baking.
-          </h1>
+    gsap.fromTo(
+      ref.current,
+      { y: 60, opacity: 0 },
+      {
+        y: 0,
+        opacity: 1,
+        duration: 1.2,
+        ease: 'expo.out',
+        scrollTrigger: {
+          trigger: ref.current,
+          start: 'top 80%',
+          once: true,
+        },
+      },
+    );
+  });
 
-          <p className="text-xl sm:text-2xl md:text-3xl font-serif text-[#21100B]/90 leading-[1.35] tracking-[-0.02em] pt-4">
-            At <strong className="font-bold text-[#E94F16] font-serif">Muffins Sweets & Bakers</strong>, we believe that food is more than just something to enjoy — it is part of the moments we remember, the celebrations we share, and the little pleasures that make everyday life special. Rooted in the heart of Bahawalpur, Muffins brings together a world of taste under one roof, offering an experience that goes far beyond the ordinary bakery.
-          </p>
-        </motion.div>
+  return (
+    <div ref={ref} className={`opacity-0 ${className}`}>
+      {children}
+    </div>
+  );
+}
 
-        {/* Featured Editorial Photo Grid with Scroll Animation */}
-        <motion.div 
-          initial={{ opacity: 0, y: 40 }}
-          whileInView={{ opacity: 1, y: 0 }}
-          viewport={{ once: true, margin: "-80px" }}
-          transition={{ duration: 0.8, ease: [0.16, 1, 0.3, 1] }}
-          className="grid grid-cols-1 md:grid-cols-12 gap-8 sm:gap-10 items-center bg-[#FCFAF8]/80 backdrop-blur-xs p-6 sm:p-10 rounded-2xl border border-brand-caramel/20 shadow-sm"
-        >
-          <div className="md:col-span-6 aspect-[4/3] overflow-hidden rounded-xl border border-brand-caramel/20 bg-brand-sugar shadow-md">
+/* ------------------------------------------------------------------ */
+/*  Main StoryPage                                                     */
+/* ------------------------------------------------------------------ */
+export default function StoryPage({ onNavigateToMenu, onNavigate }: StoryPageProps) {
+  const editorialRef = useRef<HTMLDivElement>(null);
+
+  // Reveal editorial heading lines with SplitText
+  useGSAP(() => {
+    if (!editorialRef.current) return;
+    if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) return;
+
+    const headings = editorialRef.current.querySelectorAll('[data-reveal-lines]');
+    headings.forEach((heading) => {
+      SplitText.create(heading, {
+        type: 'lines',
+        mask: 'lines',
+        linesClass: 'will-change-transform [backface-visibility:hidden]',
+        autoSplit: true,
+        onSplit: (self) =>
+          gsap.from(self.lines, {
+            yPercent: 110,
+            duration: 1.2,
+            stagger: 0.08,
+            ease: 'expo.out',
+            scrollTrigger: {
+              trigger: heading,
+              start: 'top 78%',
+              once: true,
+            },
+          }),
+      });
+    });
+  });
+
+  return (
+    <div className="relative w-full bg-[#FAF7F2]">
+
+      {/* ============================================================ */}
+      {/*  PART 1: Full CreativeStudioHero Scroll Animation             */}
+      {/*  4-step pinned scroll with image transitions + intro          */}
+      {/* ============================================================ */}
+      <CreativeStudioHero
+        brand="Muffinns"
+        title={['Decadence In', 'Every Bite']}
+        leftCopy={[
+          'Handcrafted croissants, warm muffins',
+          'and slow-simmered royal halwas',
+          'baked with pure farm desi ghee.',
+        ]}
+        rightCopy={[
+          'Traditional recipes perfected since 1988',
+          'for weddings, cherished gatherings',
+          'and refined daily indulgence.',
+        ]}
+        onNavigate={onNavigate}
+      />
+
+      {/* ============================================================ */}
+      {/*  PART 2: Editorial Story Sections (below the scroll hero)     */}
+      {/*  Each section scroll-reveals with GSAP                        */}
+      {/* ============================================================ */}
+      <div ref={editorialRef} className="relative z-10 bg-[#FAF7F2]">
+
+        {/* Heritage Statement */}
+        <section className="max-w-6xl mx-auto px-6 lg:px-12 py-20 lg:py-32">
+          <RevealSection>
+            <div className="flex items-center gap-3 mb-6">
+              <span className="w-10 h-[1.5px] bg-[#D25027]" />
+              <span className="font-mono text-xs text-[#D25027] font-bold tracking-[0.2em] uppercase">
+                Heritage Since 1988
+              </span>
+            </div>
+          </RevealSection>
+
+          <h2
+            data-reveal-lines
+            className="font-serif text-3xl sm:text-4xl lg:text-5xl xl:text-[3.4rem] text-[#21100B] font-bold leading-[1.15] tracking-[-0.03em] max-w-4xl"
+          >
+            Authentic Desi Ghee Mithai & Artisanal Oven Baking.
+          </h2>
+
+          <RevealSection className="mt-8 lg:mt-12 grid md:grid-cols-2 gap-8 lg:gap-16">
+            <p className="text-lg lg:text-xl text-[#21100B]/80 leading-[1.55] font-serif tracking-[-0.01em]">
+              Founded in the historic city of Bahawalpur, Muffins Sweets & Bakers began with a
+              simple commitment: uncompromised ingredients, generational craft, and recipes simmered
+              slow in 100% pure desi ghee.
+            </p>
+            <p className="text-lg lg:text-xl text-[#21100B]/80 leading-[1.55] font-serif tracking-[-0.01em]">
+              Today, our seven branches serve thousands of families daily — from early morning
+              breakfast croissants and signature golden muffins to royal celebratory wedding
+              sweets.
+            </p>
+          </RevealSection>
+        </section>
+
+        {/* Full-width Editorial Image */}
+        <RevealSection>
+          <div className="relative w-full h-[50vh] lg:h-[65vh] overflow-hidden">
             <img
               src="/assets/images/hero_editorial_muffin_1794039141433.jpg"
-              alt="Handcrafted artisanal golden muffin"
-              className="w-full h-full object-cover transition-transform duration-700 hover:scale-105"
+              alt="Handcrafted artisanal golden muffin — Muffinns heritage bakery"
+              className="w-full h-full object-cover"
               loading="lazy"
             />
-          </div>
-          <div className="md:col-span-6 space-y-6">
-            <p className="font-serif text-lg sm:text-xl md:text-2xl text-[#32140D]/90 leading-[1.4] tracking-[-0.01em]">
-              From the richness of beautifully crafted cakes and brownies to the familiar comfort of traditional sweets, from freshly prepared savoury favourites to satisfying meals and everyday treats, there is something for every mood, every craving, and every occasion.
-            </p>
-            <p className="font-serif text-base sm:text-lg md:text-xl text-[#32140D]/85 leading-[1.4] tracking-[-0.01em]">
-              Our identity is built around variety, flavour, and the joy of bringing people together — whether it is a family celebration, a gathering with friends, a special moment worth remembering, or simply a visit for something delicious. We bring together familiar favourites and exciting choices in one welcoming destination, where every visit offers something to discover.
-            </p>
-            <div className="pt-2 text-xs uppercase tracking-widest font-semibold text-brand-caramel flex items-center gap-2">
-              <span className="w-8 h-[1.5px] bg-brand-caramel" />
-              <span>7 Locations Serving Bahawalpur Daily</span>
+            <div className="absolute inset-0 bg-gradient-to-t from-[#21100B]/30 via-transparent to-transparent" />
+            <div className="absolute bottom-8 left-8 lg:bottom-12 lg:left-12">
+              <span className="text-xs font-mono text-white/80 uppercase tracking-[0.2em] drop-shadow-lg">
+                7 Locations Serving Bahawalpur Daily
+              </span>
             </div>
           </div>
-        </motion.div>
+        </RevealSection>
 
-        {/* Highlighted Core Story Quote */}
-        <motion.div
-          initial={{ opacity: 0, scale: 0.98, y: 30 }}
-          whileInView={{ opacity: 1, scale: 1, y: 0 }}
-          viewport={{ once: true }}
-          transition={{ duration: 0.8 }}
-          className="relative p-8 sm:p-12 rounded-3xl bg-gradient-to-r from-brand-caramel/[0.08] via-brand-sugar to-brand-caramel/[0.04] border-l-4 border-brand-caramel border-y border-r border-brand-caramel/25 shadow-md"
-        >
-          <h2 className="text-2xl sm:text-3xl md:text-4xl lg:text-[2.6rem] leading-[1.25] font-serif font-black tracking-[-0.03em] text-[#21100B]">
-            Muffins Sweets & Bakers is not just about what you take home; it is about the experiences, connections, and memories that come with every visit.
-          </h2>
-          <p className="mt-4 text-lg sm:text-xl md:text-2xl text-brand-caramel font-serif italic tracking-wide">
-            A place for every taste, every occasion, and every little moment worth making special.
-          </p>
-        </motion.div>
-
-        {/* 3 Pillars of Craftsmanship with Scroll Reveal */}
-        <div className="border-t border-b border-brand-caramel/20 py-12 sm:py-16">
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-8 sm:gap-12">
-            
-            <motion.div 
-              initial={{ opacity: 0, y: 25 }}
-              whileInView={{ opacity: 1, y: 0 }}
-              viewport={{ once: true }}
-              transition={{ duration: 0.6, delay: 0.1 }}
-              className="space-y-3"
-            >
-              <span className="font-mono text-xs text-brand-caramel font-bold tracking-widest">01 / INGREDIENTS</span>
-              <h3 className="font-serif text-2xl text-brand-chocolate font-bold">
-                Farm Dairy & Pure Desi Ghee
-              </h3>
-              <p className="text-sm text-brand-chocolate/75 leading-relaxed font-sans">
-                We source fresh cream, whole milk, and real butter daily. No artificial oils, no synthetic preservatives, and zero compromises on genuine taste.
+        {/* Quote Block */}
+        <section className="max-w-5xl mx-auto px-6 lg:px-12 py-20 lg:py-28">
+          <RevealSection>
+            <div className="relative pl-8 lg:pl-12 border-l-4 border-[#D25027]">
+              <h2
+                data-reveal-lines
+                className="text-2xl sm:text-3xl lg:text-4xl xl:text-[2.6rem] leading-[1.25] font-serif font-bold tracking-[-0.03em] text-[#21100B]"
+              >
+                Muffins Sweets & Bakers is not just about what you take home; it is about the
+                experiences, connections, and memories that come with every visit.
+              </h2>
+              <p className="mt-6 text-lg lg:text-xl text-[#D25027] font-serif italic tracking-wide">
+                A place for every taste, every occasion, and every little moment worth making special.
               </p>
-            </motion.div>
+            </div>
+          </RevealSection>
+        </section>
 
-            <motion.div 
-              initial={{ opacity: 0, y: 25 }}
-              whileInView={{ opacity: 1, y: 0 }}
-              viewport={{ once: true }}
-              transition={{ duration: 0.6, delay: 0.2 }}
-              className="space-y-3"
-            >
-              <span className="font-mono text-xs text-brand-caramel font-bold tracking-widest">02 / TIME</span>
-              <h3 className="font-serif text-2xl text-brand-chocolate font-bold">
-                Uncompromising Slow Baking
-              </h3>
-              <p className="text-sm text-brand-chocolate/75 leading-relaxed font-sans">
-                Our doughs ferment naturally, and our traditional halwas simmer gently over copper kettles for hours until caramelized to deep, aromatic perfection.
-              </p>
-            </motion.div>
-
-            <motion.div 
-              initial={{ opacity: 0, y: 25 }}
-              whileInView={{ opacity: 1, y: 0 }}
-              viewport={{ once: true }}
-              transition={{ duration: 0.6, delay: 0.3 }}
-              className="space-y-3"
-            >
-              <span className="font-mono text-xs text-brand-caramel font-bold tracking-widest">03 / COMMUNITY</span>
-              <h3 className="font-serif text-2xl text-brand-chocolate font-bold">
-                Bahawalpur’s Celebrations
-              </h3>
-              <p className="text-sm text-brand-chocolate/75 leading-relaxed font-sans">
-                From Eid gift mithai boxes and wedding customized cakes to university study snacks and tea gatherings, we have been part of your sweetest moments.
-              </p>
-            </motion.div>
-
+        {/* 3 Pillars of Craftsmanship */}
+        <section className="max-w-6xl mx-auto px-6 lg:px-12 pb-20 lg:pb-32">
+          <div className="border-t border-b border-[#21100B]/10 py-16 lg:py-20">
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-12 lg:gap-16">
+              <PillarCard
+                index="01"
+                label="Ingredients"
+                title="Farm Dairy & Pure Desi Ghee"
+                description="We source fresh cream, whole milk, and real butter daily. No artificial oils, no synthetic preservatives, and zero compromises on genuine taste."
+              />
+              <PillarCard
+                index="02"
+                label="Time"
+                title="Uncompromising Slow Baking"
+                description="Our doughs ferment naturally, and our traditional halwas simmer gently over copper kettles for hours until caramelized to deep, aromatic perfection."
+              />
+              <PillarCard
+                index="03"
+                label="Community"
+                title="Bahawalpur's Celebrations"
+                description="From Eid gift mithai boxes and wedding customized cakes to university study snacks and tea gatherings, we have been part of your sweetest moments."
+              />
+            </div>
           </div>
-        </div>
+        </section>
 
-        {/* Call to action */}
-        <motion.div 
-          initial={{ opacity: 0, y: 20 }}
-          whileInView={{ opacity: 1, y: 0 }}
-          viewport={{ once: true }}
-          transition={{ duration: 0.6 }}
-          className="text-center max-w-xl mx-auto space-y-6 pt-4"
-        >
-          <h2 className="font-serif text-3xl sm:text-4xl text-brand-chocolate font-bold">
-            Taste the Craftsmanship Today
-          </h2>
-          <p className="text-base text-brand-chocolate/75 leading-relaxed font-sans">
-            Order fresh bakes delivered straight to your door or visit our flagship branches across Bahawalpur.
-          </p>
-          <button
-            onClick={onNavigateToMenu}
-            className="inline-flex items-center gap-2 px-7 py-3.5 bg-brand-chocolate text-brand-cream hover:bg-brand-caramel transition-colors font-sans text-xs uppercase tracking-widest font-semibold rounded-xs cursor-pointer shadow-md"
-          >
-            <span>Explore The Complete Menu</span>
-            <ArrowRight className="w-4 h-4" />
-          </button>
-        </motion.div>
+        {/* Second Editorial Photo Grid */}
+        <RevealSection>
+          <section className="max-w-6xl mx-auto px-6 lg:px-12 pb-20 lg:pb-28">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6 lg:gap-8">
+              <div className="aspect-[4/3] overflow-hidden rounded-xl bg-[#e6e6e3]">
+                <img
+                  src="/assets/images/muffinns_patashay_sweets_1784645566064.jpg"
+                  alt="Royal Desi Ghee Patashay — Traditional sweets"
+                  className="w-full h-full object-cover transition-transform duration-700 hover:scale-105"
+                  loading="lazy"
+                />
+              </div>
+              <div className="aspect-[4/3] overflow-hidden rounded-xl bg-[#e6e6e3]">
+                <img
+                  src="/assets/images/muffinns_lotus_biscof_cake.jpg"
+                  alt="Lotus Biscoff celebration cake"
+                  className="w-full h-full object-cover transition-transform duration-700 hover:scale-105"
+                  loading="lazy"
+                />
+              </div>
+            </div>
+          </section>
+        </RevealSection>
+
+        {/* Final CTA */}
+        <section className="relative py-20 lg:py-28 bg-[#21100B] text-[#FAF7F2]">
+          <RevealSection className="max-w-2xl mx-auto text-center px-6">
+            <h2
+              data-reveal-lines
+              className="font-serif text-3xl sm:text-4xl lg:text-5xl font-bold leading-tight tracking-[-0.03em]"
+            >
+              Taste the Craftsmanship Today
+            </h2>
+            <p className="mt-6 text-base lg:text-lg text-[#FAF7F2]/70 leading-relaxed font-sans">
+              Order fresh bakes delivered straight to your door or visit our flagship branches
+              across Bahawalpur.
+            </p>
+            <button
+              onClick={onNavigateToMenu}
+              className="group mt-8 inline-flex items-center gap-3 px-8 py-4 bg-[#D25027] hover:bg-[#E06338] text-white font-sans text-xs uppercase tracking-[0.2em] font-bold rounded-full transition-all duration-300 transform hover:-translate-y-0.5 shadow-lg shadow-[#D25027]/30 cursor-pointer"
+            >
+              <span>Explore The Complete Menu</span>
+              <ArrowRight className="w-4 h-4 transition-transform group-hover:translate-x-1" />
+            </button>
+          </RevealSection>
+        </section>
 
       </div>
     </div>

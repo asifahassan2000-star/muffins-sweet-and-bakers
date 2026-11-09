@@ -1,25 +1,16 @@
-import React, { useEffect, useRef, useState } from 'react';
+import React, { useEffect, useRef } from 'react';
 import { gsap } from 'gsap';
-import { ShoppingBag, Menu, Sparkles, ArrowRight, ChevronDown } from 'lucide-react';
+import { ArrowRight, ShoppingBag } from 'lucide-react';
 import MuffinnsLogo from './MuffinnsLogo';
-import BakeryAuroraBackground from './BakeryAuroraBackground';
+import { AppView } from '../App';
 
 export interface HeroProps {
-  onNavigate: (view: 'home' | 'menu' | 'story' | 'contact' | 'find-us' | 'theme-studio' | 'tracker') => void;
+  onNavigate: (view: AppView) => void;
   onOpenOrderNow?: () => void;
   onOpenSidebar?: () => void;
   onOpenCart?: () => void;
   cartCount?: number;
-  theme?: string;
 }
-
-export const DEFAULT_HERO_LINKS: { label: string; view: 'story' | 'menu' | 'find-us' | 'contact' | 'tracker' }[] = [
-  { label: 'Complete Menu', view: 'menu' },
-  { label: 'Our Story', view: 'story' },
-  { label: '7 Branches', view: 'find-us' },
-  { label: 'Contact', view: 'contact' },
-  { label: 'Track Order', view: 'tracker' },
-];
 
 export default function Hero({
   onNavigate,
@@ -28,220 +19,231 @@ export default function Hero({
   onOpenCart,
   cartCount = 0,
 }: HeroProps) {
-  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const heroRef = useRef<HTMLElement>(null);
-  const contentRef = useRef<HTMLDivElement>(null);
+  const titleRef = useRef<HTMLHeadingElement>(null);
+  const visualRef = useRef<HTMLDivElement>(null);
 
-  // Entrance animation matching component-024
   useEffect(() => {
     const hero = heroRef.current;
     if (!hero) return;
 
-    const tl = gsap.timeline({ defaults: { ease: 'power3.out' } });
+    const ctx = gsap.context(() => {
+      const tl = gsap.timeline({ defaults: { ease: 'power3.out' } });
 
-    tl.from(
-      ['.hero-nav__logo', '.hero-nav__menu'],
-      {
-        y: -16,
+      tl.from('.hero-badge-tag', {
         opacity: 0,
-        duration: 0.7,
-        stagger: 0.05,
-        clearProps: 'transform,opacity',
-      },
-      0.2,
-    )
-      .from('.hero__badge', { y: 18, opacity: 0, duration: 0.7 }, 0.4)
-      .from('.hero__line', { y: 44, opacity: 0, duration: 0.9, stagger: 0.1 }, 0.5)
-      .from('.hero__cta', { y: 20, opacity: 0, duration: 0.7 }, 0.85)
-      .from(['.hero__desc', '.hero__trust'], { y: 20, opacity: 0, duration: 0.7, stagger: 0.1 }, 0.95);
+        y: 12,
+        duration: 0.6,
+      })
+      .from('.hero-headline-item', {
+        opacity: 0,
+        y: 28,
+        duration: 0.8,
+        stagger: 0.12,
+      }, '-=0.3')
+      .from('.hero-description', {
+        opacity: 0,
+        y: 16,
+        duration: 0.6,
+      }, '-=0.4')
+      .from('.hero-actions-wrap', {
+        opacity: 0,
+        y: 16,
+        duration: 0.6,
+      }, '-=0.4')
+      .from(visualRef.current, {
+        opacity: 0,
+        scale: 0.96,
+        duration: 1,
+      }, '-=0.7');
+    }, hero);
 
-    return () => {
-      tl.kill();
-    };
+    return () => ctx.revert();
   }, []);
-
-  const scrollToContent = () => {
-    window.scrollTo({
-      top: window.innerHeight * 0.95,
-      behavior: 'smooth',
-    });
-  };
 
   return (
     <section
       ref={heroRef}
-      className="relative min-h-screen min-h-svh w-full overflow-hidden bg-[#050505] text-[#F2F2F2] flex flex-col justify-between isolate select-none"
-      aria-label="Muffinns Sweets & Bakers Hero"
+      className="relative w-full bg-[#FAF7F2] text-[#21100B] overflow-hidden pt-6 pb-20 md:pb-28"
+      aria-label="Muffins Sweets & Bakers Hero"
     >
-      {/* ========================================================================= */}
-      {/* BACKDROP SCENE COPIED FROM COMPONENT-024 (WITH WARM BAKERY ADJUSTED COLORS) */}
-      {/* ========================================================================= */}
-      <BakeryAuroraBackground />
+      {/* Subtle Warm Ambient Glow */}
+      <div 
+        className="absolute top-0 right-1/4 w-[600px] h-[600px] bg-[#E8B896]/15 rounded-full blur-[120px] pointer-events-none -z-10" 
+        aria-hidden="true" 
+      />
+      <div 
+        className="absolute bottom-0 left-10 w-[500px] h-[500px] bg-[#D25027]/8 rounded-full blur-[140px] pointer-events-none -z-10" 
+        aria-hidden="true" 
+      />
 
-      {/* ========================================================================= */}
-      {/* NAVBAR (COMPONENT-024 STRUCTURE WITH MUFFINNS CONTENT)                    */}
-      {/* ========================================================================= */}
-      <header className="relative z-20 flex items-center justify-between gap-6 sm:gap-10 px-5 sm:px-8 lg:px-14 pt-4 sm:pt-6">
-        {/* Brand Logo */}
+      {/* Top Header Bar */}
+      <header className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 mb-12 sm:mb-16 flex items-center justify-between gap-4">
         <button
           onClick={() => onNavigate('home')}
-          className="hero-nav__logo flex items-center gap-3 text-left group cursor-pointer focus:outline-none"
-          aria-label="Muffinns Sweets & Bakers Home"
+          className="flex items-center gap-3 text-left cursor-pointer group focus:outline-none"
+          aria-label="Muffins Sweets & Bakers Home"
         >
-          <MuffinnsLogo size={34} animated={false} />
-          <div>
-            <span className="font-serif font-black text-xl sm:text-2xl text-white tracking-tight block leading-none group-hover:text-[#FF5E2B] transition-colors">
-              Muffinns
-            </span>
-            <span className="text-[9px] sm:text-[10px] font-mono uppercase tracking-[0.22em] text-[#FF9E7A] block mt-1">
-              Sweets & Bakers
-            </span>
-          </div>
+          <MuffinnsLogo size={52} showWordmark={true} />
         </button>
 
-        {/* Minimal Menu Trigger (All navigation, theme switching & bag inside drawer) */}
-        <button
-          type="button"
-          onClick={() => (onOpenSidebar ? onOpenSidebar() : setMobileMenuOpen(true))}
-          className="hero-nav__menu inline-flex items-center gap-2 px-4 sm:px-5 py-2 sm:py-2.5 rounded-full font-mono text-xs uppercase font-bold tracking-widest text-[#F2F2F2] bg-white/[0.08] hover:bg-white/[0.16] border border-white/15 backdrop-blur-md transition-all cursor-pointer shadow-sm hover:scale-105 active:scale-95 focus:outline-none"
-          aria-label="Open bakery menu"
-        >
-          <Menu className="w-4 h-4 text-[#FF5E2B]" />
-          <span>Menu</span>
-          {cartCount > 0 && (
-            <span className="ml-1 rounded-full bg-[#FF5E2B] px-1.5 py-0.2 text-[10px] text-white font-bold tabular-nums">
-              {cartCount}
-            </span>
-          )}
-        </button>
+        <div className="flex items-center gap-3 sm:gap-4">
+          <nav className="hidden md:flex items-center gap-8 text-[13px] font-medium tracking-wide text-[#5C4A3E]">
+            <button onClick={() => onNavigate('story')} className="hover:text-[#D25027] transition-colors cursor-pointer">
+              Our Story
+            </button>
+            <button onClick={() => onNavigate('menu')} className="hover:text-[#D25027] transition-colors cursor-pointer">
+              Full Menu
+            </button>
+            <button onClick={() => onNavigate('find-us')} className="hover:text-[#D25027] transition-colors cursor-pointer">
+              7 Branches
+            </button>
+            <button onClick={() => onNavigate('contact')} className="hover:text-[#D25027] transition-colors cursor-pointer">
+              Contact
+            </button>
+            <button onClick={() => onNavigate('tracker')} className="hover:text-[#D25027] transition-colors cursor-pointer">
+              Track Order
+            </button>
+          </nav>
+
+          <button
+            onClick={onOpenCart}
+            className="flex items-center gap-2 px-3.5 py-2 rounded-lg bg-white border border-[#21100B]/10 hover:border-[#D25027]/40 text-[#21100B] text-xs font-semibold transition-all cursor-pointer shadow-xs"
+            aria-label={`Shopping Bag (${cartCount})`}
+          >
+            <ShoppingBag className="w-4 h-4 text-[#D25027]" />
+            <span className="hidden sm:inline">Bag</span>
+            {cartCount > 0 && (
+              <span className="w-5 h-5 rounded-full bg-[#D25027] text-white text-[11px] font-bold flex items-center justify-center">
+                {cartCount}
+              </span>
+            )}
+          </button>
+        </div>
       </header>
 
-      {/* Mobile Drawer Sheet */}
-      {mobileMenuOpen && (
-        <div className="md:hidden fixed inset-0 top-[65px] bg-[#0A0706]/98 backdrop-blur-2xl z-50 p-6 flex flex-col justify-between border-t border-white/10 animate-in fade-in duration-200">
-          <nav className="space-y-4 pt-4">
-            {DEFAULT_HERO_LINKS.map((link) => (
-              <button
-                key={link.label}
-                onClick={() => {
-                  setMobileMenuOpen(false);
-                  onNavigate(link.view);
-                }}
-                className="block w-full text-left font-serif text-2xl font-bold text-white hover:text-[#FF5E2B] border-b border-white/10 pb-3 transition-colors"
-              >
-                {link.label}
-              </button>
-            ))}
-          </nav>
-          <div className="pt-6 border-t border-white/10 flex items-center justify-between text-xs text-white/60 font-mono">
-            <span>Muffinns Sweets & Bakers</span>
-            <button
-              onClick={() => setMobileMenuOpen(false)}
-              className="px-3.5 py-1.5 bg-white/10 rounded-full text-white"
+      {/* Main Hero Grid */}
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-12 lg:gap-8 items-center">
+          
+          {/* Left Column: Editorial Headline & Actions */}
+          <div className="lg:col-span-6 space-y-6 sm:space-y-8">
+            
+            <div className="hero-badge-tag inline-block">
+              <span className="text-[11px] uppercase tracking-[0.25em] font-semibold text-[#D25027] block">
+                Since 1988 · Bahawalpur, Punjab
+              </span>
+            </div>
+
+            <h1 
+              ref={titleRef}
+              className="font-serif text-4xl sm:text-5xl lg:text-6xl font-normal leading-[1.08] tracking-[-0.015em] text-[#21100B]"
             >
-              Close
-            </button>
+              <span className="hero-headline-item block">Generational Mastery,</span>
+              <span className="hero-headline-item block font-semibold text-[#D25027] italic">
+                Baked Fresh Daily.
+              </span>
+            </h1>
+
+            <p className="hero-description text-[#5C4A3E] text-base sm:text-lg leading-relaxed max-w-xl font-normal">
+              From pure desi ghee royal patashay and signature golden muffins to artisan sourdough and bespoke celebration cakes — crafted with stone deck ovens fired every single dawn.
+            </p>
+
+            {/* Action Buttons */}
+            <div className="hero-actions-wrap flex flex-wrap items-center gap-4 pt-2">
+              <button
+                onClick={() => (onOpenOrderNow ? onOpenOrderNow() : onNavigate('menu'))}
+                className="inline-flex items-center justify-center gap-2.5 px-7 py-3.5 rounded-lg bg-[#D25027] hover:bg-[#B8401C] text-white font-medium text-sm transition-all shadow-sm hover:shadow-md cursor-pointer group"
+              >
+                <span>Explore Bakery Menu</span>
+                <ArrowRight className="w-4 h-4 transition-transform group-hover:translate-x-1" />
+              </button>
+
+              <button
+                onClick={() => onNavigate('story')}
+                className="inline-flex items-center justify-center px-6 py-3.5 rounded-lg bg-white hover:bg-[#F4EFE6] border border-[#21100B]/12 text-[#21100B] font-medium text-sm transition-colors cursor-pointer"
+              >
+                Our 1988 Heritage
+              </button>
+            </div>
+
+            {/* Reassuring Brand Indicators without fake icons */}
+            <div className="pt-6 border-t border-[#21100B]/8 flex flex-wrap gap-x-8 gap-y-3 text-xs text-[#6E5D52]">
+              <div>
+                <span className="font-semibold text-[#21100B] block text-sm">7 Branches</span>
+                <span>Across Bahawalpur City</span>
+              </div>
+              <div className="w-px h-8 bg-[#21100B]/10 hidden sm:block" />
+              <div>
+                <span className="font-semibold text-[#21100B] block text-sm">100% Desi Ghee</span>
+                <span>Authentic Traditional Mithai</span>
+              </div>
+              <div className="w-px h-8 bg-[#21100B]/10 hidden sm:block" />
+              <div>
+                <span className="font-semibold text-[#21100B] block text-sm">Daily Fresh Batches</span>
+                <span>Early Morning 6:00 AM Ovens</span>
+              </div>
+            </div>
+
           </div>
-        </div>
-      )}
 
-      {/* ========================================================================= */}
-      {/* HERO CONTENT (COMPONENT-024 LAYOUT STRUCTURE)                             */}
-      {/* ========================================================================= */}
-      <div
-        ref={contentRef}
-        className="relative z-20 px-5 sm:px-8 lg:px-14 pt-8 sm:pt-14 md:pt-16 max-w-4xl"
-      >
-        {/* Pill Badge */}
-        <div className="hero__badge inline-flex items-center gap-2.5 px-4 py-2 rounded-full bg-white/[0.06] border border-white/[0.09] backdrop-blur-md font-mono text-[11px] sm:text-[11.5px] tracking-[0.03em] text-[#DCDCDC] shadow-sm">
-          <Sparkles className="w-3 h-3 text-[#FF5E2B] animate-pulse" />
-          <span>EST. 1988 · WHERE TRADITION MEETS FLAVOR</span>
-        </div>
+          {/* Right Column: Editorial Visual Showcase */}
+          <div ref={visualRef} className="lg:col-span-6 relative">
+            <div className="relative mx-auto max-w-md lg:max-w-none">
+              
+              {/* Primary Featured Card */}
+              <div className="artisan-card overflow-hidden rounded-2xl bg-white p-3 sm:p-4 shadow-md">
+                <div className="relative aspect-[4/3] rounded-xl overflow-hidden bg-[#F4EFE6]">
+                  <img
+                    src="/assets/images/muffinns_patashay_sweets_1784645566064.jpg"
+                    alt="Muffins Sweets Royal Patashay"
+                    className="w-full h-full object-cover transition-transform duration-700 hover:scale-105"
+                  />
+                  <div className="absolute top-3 left-3 bg-[#21100B]/90 backdrop-blur-sm text-white px-3 py-1 rounded-md text-[11px] font-medium">
+                    Signature Mithai
+                  </div>
+                </div>
 
-        {/* Hero Title Lines */}
-        <h1 className="hero__title mt-5 sm:mt-6 font-serif font-light text-[clamp(36px,5.8vw,72px)] leading-[1.08] tracking-[-0.025em] text-[#F6F4FF]">
-          <span className="hero__line block">Fresh &amp; Sweet,</span>
-          <span className="hero__line block">Baked For You</span>
-          <span className="hero__line block text-transparent bg-clip-text bg-gradient-to-r from-[#FFD166] via-[#FF5E2B] to-[#F7B267] font-normal">
-            Every Single Morning.
-          </span>
-        </h1>
+                <div className="p-4 sm:p-5 flex items-center justify-between gap-4">
+                  <div>
+                    <h3 className="font-serif text-xl text-[#21100B] font-semibold">
+                      Royal Patashay &amp; Pure Desi Ghee Sweets
+                    </h3>
+                    <p className="text-xs text-[#6E5D52] mt-0.5">
+                      Handcrafted with generational recipe passed down through decades
+                    </p>
+                  </div>
+                  <button
+                    onClick={() => onNavigate('menu')}
+                    className="shrink-0 px-4 py-2 rounded-lg bg-[#FAF7F2] hover:bg-[#D25027] hover:text-white border border-[#21100B]/10 text-xs font-semibold text-[#21100B] transition-colors cursor-pointer"
+                  >
+                    View Item
+                  </button>
+                </div>
+              </div>
 
-        {/* Primary CTA Button */}
-        <div className="hero__cta mt-7 sm:mt-8 flex flex-wrap items-center gap-4">
-          <button
-            onClick={() => (onOpenOrderNow ? onOpenOrderNow() : onNavigate('menu'))}
-            className="inline-flex items-center justify-center gap-2 px-8 py-3.5 rounded-full font-mono text-xs uppercase font-bold tracking-[0.08em] text-[#141414] bg-gradient-to-b from-[#FFFFFF] to-[#D4D4D4] border border-white/60 shadow-[inset_0_1px_0_rgba(255,255,255,0.9),0_10px_28px_rgba(0,0,0,0.5)] hover:brightness-105 active:scale-95 transition-all cursor-pointer group"
-          >
-            <span>Explore Fresh Bakes</span>
-            <ArrowRight className="w-3.5 h-3.5 transition-transform group-hover:translate-x-1" />
-          </button>
+              {/* Floating Second Card Accent */}
+              <div className="hidden sm:flex items-center gap-3 absolute -bottom-6 -left-6 bg-white p-3.5 rounded-xl shadow-lg border border-[#21100B]/8 max-w-xs">
+                <img
+                  src="/assets/images/special_artisan_bread_1786872969815.jpg"
+                  alt="Artisan Sourdough Loaf"
+                  className="w-14 h-14 rounded-lg object-cover bg-[#F4EFE6] shrink-0"
+                />
+                <div>
+                  <h4 className="font-serif text-sm font-semibold text-[#21100B] leading-tight">
+                    Artisan Crust Breads
+                  </h4>
+                  <p className="text-[11px] text-[#6E5D52] mt-0.5">
+                    Slow-fermented &amp; stone deck baked
+                  </p>
+                </div>
+              </div>
 
-          <button
-            onClick={() => onNavigate('story')}
-            className="inline-flex items-center justify-center px-6 py-3.5 rounded-full font-mono text-xs uppercase tracking-[0.08em] text-[#E0E0E0] hover:text-white bg-white/[0.05] hover:bg-white/[0.1] border border-white/10 backdrop-blur-md transition-colors cursor-pointer"
-          >
-            Our 1988 Story →
-          </button>
+            </div>
+          </div>
+
         </div>
       </div>
-
-      {/* ========================================================================= */}
-      {/* BOTTOM STRIP (COMPONENT-024 FOOTER STRUCTURE)                             */}
-      {/* ========================================================================= */}
-      <div className="hero__footer relative z-20 mt-auto px-5 sm:px-8 lg:px-14 pb-8 sm:pb-10 pt-8 flex flex-col md:flex-row md:items-end justify-between gap-6">
-        {/* Left Side: Artisanal Description */}
-        <p className="hero__desc max-w-md text-[13.5px] sm:text-[14.5px] font-normal leading-[1.6] text-[#CFCFCF] drop-shadow-[0_1px_12px_rgba(0,0,0,0.6)]">
-          “Crafted to Crave, Baked to Delight.” Generational mother recipes, stone deck ovens fired at dawn, and royal desi ghee sweets across Bahawalpur.
-        </p>
-
-        {/* Right Side: Trust strip with overlapping patron avatars */}
-        <div className="hero__trust flex items-center gap-3">
-          <div className="flex -space-x-2">
-            <span
-              className="w-[26px] h-[26px] rounded-full border-2 border-[#0A0A0A] shadow-sm"
-              style={{
-                background:
-                  'radial-gradient(circle at 32% 30%, rgba(255, 255, 255, 0.55), transparent 45%), #FF5E2B',
-              }}
-            />
-            <span
-              className="w-[26px] h-[26px] rounded-full border-2 border-[#0A0A0A] shadow-sm"
-              style={{
-                background:
-                  'radial-gradient(circle at 32% 30%, rgba(255, 255, 255, 0.55), transparent 45%), #F7B267',
-              }}
-            />
-            <span
-              className="w-[26px] h-[26px] rounded-full border-2 border-[#0A0A0A] shadow-sm"
-              style={{
-                background:
-                  'radial-gradient(circle at 32% 30%, rgba(255, 255, 255, 0.55), transparent 45%), #8E280E',
-              }}
-            />
-            <span
-              className="w-[26px] h-[26px] rounded-full border-2 border-[#0A0A0A] shadow-sm"
-              style={{
-                background:
-                  'radial-gradient(circle at 32% 30%, rgba(255, 255, 255, 0.55), transparent 45%), #FFD166',
-              }}
-            />
-          </div>
-          <span className="font-mono text-[11px] sm:text-[11.5px] tracking-[0.02em] text-[#D6D6D6]">
-            Trusted by 40k+ patrons across Bahawalpur.
-          </span>
-        </div>
-      </div>
-
-      {/* Subtle Scroll Down Prompt */}
-      <button
-        onClick={scrollToContent}
-        className="absolute bottom-3 left-1/2 -translate-x-1/2 z-30 hidden lg:flex items-center gap-1.5 text-[10px] font-mono uppercase tracking-[0.22em] text-white/40 hover:text-[#FF5E2B] transition-colors cursor-pointer"
-        aria-label="Scroll to discover bakery collections"
-      >
-        <span>Scroll to Explore</span>
-        <ChevronDown className="w-3.5 h-3.5 animate-bounce text-[#FF5E2B]" />
-      </button>
     </section>
   );
 }

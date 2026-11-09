@@ -1,17 +1,16 @@
 import React, { useEffect } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
-import { X, ArrowRight, Phone, MapPin, Clock, ShieldCheck, Palette, ShoppingBag, Sparkles } from 'lucide-react';
+import { X, ArrowRight, ShoppingBag, Phone, MapPin, Clock } from 'lucide-react';
 import MuffinnsLogo from './MuffinnsLogo';
+import { AppView } from '../App';
 
 interface NavigationSidebarProps {
   isOpen: boolean;
   onClose: () => void;
-  activeView: 'home' | 'menu' | 'story' | 'contact' | 'find-us' | 'theme-studio' | 'tracker' | 'admin';
-  onNavigate: (view: 'home' | 'menu' | 'story' | 'contact' | 'find-us' | 'theme-studio' | 'tracker' | 'admin') => void;
+  activeView: AppView;
+  onNavigate: (view: AppView) => void;
   onOpenCart?: () => void;
   cartCount?: number;
-  currentTheme?: 'luxury_main' | 'muffin_galaxy' | string;
-  onToggleTheme?: () => void;
 }
 
 export default function NavigationSidebar({
@@ -21,10 +20,7 @@ export default function NavigationSidebar({
   onNavigate,
   onOpenCart,
   cartCount = 0,
-  currentTheme = 'luxury_main',
-  onToggleTheme,
 }: NavigationSidebarProps) {
-  // Lock body scroll when drawer is open
   useEffect(() => {
     if (isOpen) {
       document.body.style.overflow = 'hidden';
@@ -36,10 +32,9 @@ export default function NavigationSidebar({
     };
   }, [isOpen]);
 
-  // Main menu destinations (no separate theme studio page)
   const navItems: {
     label: string;
-    view: 'home' | 'menu' | 'story' | 'contact' | 'find-us' | 'tracker' | 'admin';
+    view: AppView;
     num: string;
     desc: string;
   }[] = [
@@ -55,42 +50,32 @@ export default function NavigationSidebar({
     <AnimatePresence>
       {isOpen && (
         <div className="fixed inset-0 z-50 flex justify-end">
-          {/* Backdrop overlay */}
           <motion.div
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
-            transition={{ duration: 0.35, ease: [0.16, 1, 0.3, 1] }}
-            className="fixed inset-0 bg-brand-chocolate/40 backdrop-blur-sm cursor-pointer"
+            transition={{ duration: 0.3, ease: 'easeOut' }}
+            className="fixed inset-0 bg-[#21100B]/50 backdrop-blur-xs cursor-pointer"
             onClick={onClose}
             aria-hidden="true"
           />
 
-          {/* Slide-out Sidebar Panel */}
           <motion.div
             initial={{ x: '100%' }}
             animate={{ x: 0 }}
             exit={{ x: '100%' }}
-            transition={{ duration: 0.45, ease: [0.16, 1, 0.3, 1] }}
-            className="relative w-full max-w-md h-full bg-brand-cream border-l border-brand-caramel/15 shadow-2xl z-10 flex flex-col justify-between overflow-y-auto"
+            transition={{ duration: 0.4, ease: [0.16, 1, 0.3, 1] }}
+            className="relative w-full max-w-md h-full bg-[#FAF7F2] border-l border-[#21100B]/10 shadow-2xl z-10 flex flex-col justify-between overflow-y-auto"
           >
             {/* Drawer Header */}
-            <div className="p-6 sm:p-8 flex items-center justify-between border-b border-brand-caramel/10">
+            <div className="p-6 flex items-center justify-between border-b border-[#21100B]/8 bg-white">
               <div className="flex items-center gap-3">
-                <MuffinnsLogo size={32} animated={false} />
-                <div>
-                  <span className="font-serif font-black text-xl text-brand-chocolate tracking-tight block leading-tight">
-                    Muffinns
-                  </span>
-                  <span className="text-[9px] uppercase tracking-[0.2em] font-semibold text-brand-honey block">
-                    Sweets & Bakers
-                  </span>
-                </div>
+                <MuffinnsLogo size={40} showWordmark={true} />
               </div>
 
               <button
                 onClick={onClose}
-                className="p-2 text-brand-chocolate/60 hover:text-brand-chocolate hover:bg-brand-caramel/10 transition-colors rounded-xs cursor-pointer flex items-center gap-1.5 text-xs uppercase tracking-widest font-semibold"
+                className="p-2 text-[#21100B]/70 hover:text-[#21100B] hover:bg-[#FAF7F2] transition-colors rounded-lg cursor-pointer flex items-center gap-1.5 text-xs font-semibold"
                 aria-label="Close navigation menu"
               >
                 <span>Close</span>
@@ -99,10 +84,10 @@ export default function NavigationSidebar({
             </div>
 
             {/* Navigation Destinations */}
-            <div className="px-6 sm:px-8 py-6 space-y-3 flex-1">
-              <p className="text-[10px] uppercase tracking-[0.25em] font-bold text-brand-caramel/70 mb-2">
-                Main Menu
-              </p>
+            <div className="p-6 space-y-2 flex-1">
+              <span className="text-[11px] uppercase tracking-[0.2em] font-semibold text-[#D25027] block mb-3">
+                Bakery Directory
+              </span>
 
               <div className="space-y-1">
                 {navItems.map((item) => {
@@ -114,137 +99,60 @@ export default function NavigationSidebar({
                         onNavigate(item.view);
                         onClose();
                       }}
-                      className={`w-full group text-left px-3 py-2.5 rounded-lg transition-colors flex items-center justify-between cursor-pointer ${
+                      className={`w-full group text-left px-4 py-3 rounded-xl transition-all flex items-center justify-between cursor-pointer ${
                         isActive
-                          ? 'bg-brand-chocolate text-brand-cream'
-                          : 'text-brand-chocolate hover:bg-brand-sugar'
+                          ? 'bg-[#21100B] text-white shadow-sm'
+                          : 'text-[#21100B] hover:bg-white border border-transparent hover:border-[#21100B]/6'
                       }`}
                     >
-                      <div className="flex items-baseline gap-3">
-                        <span className={`text-xs font-mono tabular-nums ${isActive ? 'text-brand-gold' : 'text-brand-caramel/60'}`}>
+                      <div className="flex items-baseline gap-3.5">
+                        <span className={`text-xs font-medium tabular-nums ${isActive ? 'text-[#D25027]' : 'text-[#8C7A6B]'}`}>
                           {item.num}
                         </span>
                         <div>
-                          <span className="font-serif text-lg font-bold block leading-tight">
+                          <span className="font-serif text-base sm:text-lg font-semibold block leading-tight">
                             {item.label}
                           </span>
-                          <span className={`text-[11px] block mt-0.5 ${isActive ? 'text-brand-cream/70' : 'text-brand-chocolate/60'}`}>
+                          <span className={`text-xs block mt-0.5 ${isActive ? 'text-white/70' : 'text-[#6E5D52]'}`}>
                             {item.desc}
                           </span>
                         </div>
                       </div>
 
-                      <ArrowRight className={`w-4 h-4 transition-transform duration-200 group-hover:translate-x-1 ${isActive ? 'text-brand-gold' : 'text-brand-chocolate/30'}`} />
+                      <ArrowRight className={`w-4 h-4 transition-transform group-hover:translate-x-1 ${isActive ? 'text-[#D25027]' : 'text-[#21100B]/30'}`} />
                     </button>
                   );
                 })}
               </div>
 
-              {/* ========================================================================= */}
-              {/* ONE BUTTON INSIDE MENU FOR CHANGING THEME (NO SEPARATE PAGE NEEDED)       */}
-              {/* ========================================================================= */}
-              <div className="pt-4 pb-1">
+              {/* Shopping Bag Trigger in Drawer */}
+              <div className="pt-4">
                 <button
                   type="button"
                   onClick={() => {
-                    if (onToggleTheme) onToggleTheme();
+                    onClose();
+                    if (onOpenCart) onOpenCart();
                   }}
-                  className="w-full p-3.5 rounded-xl border border-brand-caramel/25 bg-gradient-to-r from-brand-caramel/10 via-brand-caramel/5 to-transparent hover:border-brand-caramel/50 transition-all flex items-center justify-between group cursor-pointer text-left shadow-xs"
-                  aria-label="Toggle bakery theme between Luxury Atelier and Muffin Galaxy"
+                  className="w-full flex items-center justify-between px-4 py-3 bg-[#D25027] hover:bg-[#B8401C] text-white rounded-xl shadow-xs transition-colors cursor-pointer"
                 >
-                  <div className="flex items-center gap-3">
-                    <div className="w-9 h-9 rounded-lg bg-brand-caramel text-brand-cream flex items-center justify-center shrink-0 shadow-sm group-hover:scale-105 transition-transform">
-                      <Palette className="w-4 h-4" />
-                    </div>
-                    <div>
-                      <span className="text-[10px] uppercase font-bold tracking-widest text-brand-honey block">
-                        Bakery Atmosphere
-                      </span>
-                      <span className="font-serif text-sm font-bold text-brand-chocolate block leading-tight">
-                        {currentTheme === 'muffin_galaxy' ? 'Muffin Galaxy 🪐' : 'Luxury Atelier 👑'}
-                      </span>
-                    </div>
+                  <div className="flex items-center gap-2.5">
+                    <ShoppingBag className="w-4 h-4" />
+                    <span className="text-xs font-semibold">Open Shopping Bag</span>
                   </div>
-
-                  <span className="text-[10px] font-mono uppercase tracking-wider font-bold text-brand-caramel bg-brand-caramel/15 px-3 py-1 rounded-full group-hover:bg-brand-caramel group-hover:text-brand-cream transition-colors">
-                    Change Theme
+                  <span className="text-xs font-bold bg-white/20 px-2 py-0.5 rounded-full">
+                    {cartCount} items
                   </span>
                 </button>
               </div>
-
-              {/* Shopping Bag Quick Access inside drawer */}
-              {onOpenCart && (
-                <div className="pt-2">
-                  <button
-                    onClick={() => {
-                      onClose();
-                      onOpenCart();
-                    }}
-                    className="w-full py-3 px-4 bg-brand-cream hover:bg-brand-sugar border border-brand-caramel/20 text-brand-chocolate transition-colors font-sans text-xs uppercase tracking-wider font-bold flex items-center justify-between cursor-pointer rounded-xl shadow-xs"
-                  >
-                    <span className="flex items-center gap-2">
-                      <ShoppingBag className="w-4 h-4 text-brand-caramel" />
-                      <span>View Shopping Bag</span>
-                    </span>
-                    <span className="font-mono text-xs px-2.5 py-0.5 rounded-full bg-brand-caramel text-brand-cream font-bold">
-                      {cartCount} {cartCount === 1 ? 'item' : 'items'}
-                    </span>
-                  </button>
-                </div>
-              )}
-
-              {/* Order Now Callout */}
-              <div className="pt-2">
-                <button
-                  onClick={() => {
-                    onNavigate('menu');
-                    onClose();
-                  }}
-                  className="w-full py-3.5 px-4 bg-brand-caramel hover:bg-brand-chocolate text-brand-cream transition-colors font-sans text-xs uppercase tracking-[0.18em] font-semibold flex items-center justify-center gap-2 cursor-pointer shadow-xs rounded-xl"
-                >
-                  <Sparkles className="w-4 h-4" />
-                  <span>Order Now · Fresh Delivery</span>
-                </button>
-              </div>
-
-              {/* Admin Portal subtle link */}
-              <div className="pt-2">
-                <button
-                  onClick={() => {
-                    onNavigate('admin');
-                    onClose();
-                  }}
-                  className="text-[11px] text-brand-chocolate/50 hover:text-brand-chocolate flex items-center gap-1.5 transition-colors cursor-pointer"
-                >
-                  <ShieldCheck className="w-3.5 h-3.5" />
-                  <span>Staff / Back-Office Management</span>
-                </button>
-              </div>
             </div>
 
-            {/* Drawer Footer Information */}
-            <div className="p-6 sm:p-8 border-t border-brand-caramel/10 bg-brand-sugar text-xs text-brand-chocolate/75 space-y-3">
-              <div className="flex items-center gap-2 text-brand-chocolate">
-                <Phone className="w-3.5 h-3.5 text-brand-caramel shrink-0" />
-                <a href="tel:03026567774" className="font-mono font-medium hover:text-brand-caramel transition-colors">
-                  0302 6567774
-                </a>
-                <span className="text-brand-caramel/30">|</span>
-                <a href="tel:03326567774" className="font-mono font-medium hover:text-brand-caramel transition-colors">
-                  0332 6567774
-                </a>
-              </div>
-
-              <div className="flex items-start gap-2 text-brand-chocolate/70">
-                <MapPin className="w-3.5 h-3.5 text-brand-caramel shrink-0 mt-0.5" />
-                <span>Circular Road & Model Town, Bahawalpur, Punjab</span>
-              </div>
-
-              <div className="flex items-center gap-2 text-brand-chocolate/60 text-[11px]">
-                <Clock className="w-3.5 h-3.5 text-brand-caramel shrink-0" />
-                <span>Open Daily: 08:00 AM – 12:00 AM</span>
-              </div>
+            {/* Quick Contact Strip in Drawer */}
+            <div className="p-6 bg-white border-t border-[#21100B]/8 space-y-2 text-xs text-[#5C4A3E]">
+              <p className="font-semibold text-[#21100B]">Bakehouse Orders Hotline</p>
+              <p>0302 6567774 · 0332 6567774</p>
+              <p className="text-[11px] text-[#8C7A6B]">Bahawalpur, Punjab, Pakistan</p>
             </div>
+
           </motion.div>
         </div>
       )}
