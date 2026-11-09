@@ -1,40 +1,56 @@
+/* eslint-disable @next/next/no-img-element */
 import React, { useCallback, useEffect, useRef, useState } from 'react';
 import { gsap } from 'gsap';
 import { useGSAP } from '@gsap/react';
 import { Flip } from 'gsap/Flip';
 import { ScrollTrigger } from 'gsap/ScrollTrigger';
 import { SplitText } from 'gsap/SplitText';
-import { ArrowRight, Sparkles } from 'lucide-react';
+import FluidCursor from './FluidCursor';
 
 gsap.registerPlugin(useGSAP, Flip, ScrollTrigger, SplitText);
+
+// Mobile browsers resize the viewport as the URL bar shows/hides; skipping
+// those refreshes avoids a layout stutter mid-scroll.
 ScrollTrigger.config({ ignoreMobileResize: true });
 
 /* ------------------------------------------------------------------ */
-/*  Config & Fonts (Exact font styling matching original first design)*/
+/*  Config & Fonts (Muffins Sweets & Bakers Brand Theme)              */
 /* ------------------------------------------------------------------ */
 
-const FONT = "'SF Pro Display', -apple-system, BlinkMacSystemFont, 'Outfit', 'Inter', system-ui, sans-serif";
-const FONT_LOGO = "Fraunces, 'Playfair Display', 'Cormorant Garamond', Georgia, serif";
-const LOGO_STYLE = { fontFamily: FONT_LOGO, fontVariationSettings: "'opsz' 144" };
+const FONT = "'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, 'SF Pro Display', sans-serif";
+const FONT_INDEX = "'Plus Jakarta Sans', monospace, sans-serif";
+const FONT_LOGO = "Fraunces, 'Cormorant Garamond', 'Playfair Display', Georgia, serif";
+
+const LOGO_STYLE: React.CSSProperties = {
+  fontFamily: FONT_LOGO,
+  fontVariationSettings: "'opsz' 144",
+};
 
 /* ------------------------------------------------------------------ */
-/*  Intro animation configuration                                     */
+/*  Intro — timeline settings                                          */
 /* ------------------------------------------------------------------ */
 
 const INTRO = {
+  // Step 1 — wordmark drops in from above while cream plate grows up
   travel: '1.3em',
   meetDuration: 1.3,
   meetEase: 'expo.inOut',
   logoSize: 'max(7vw, 44px)',
   platePadY: '-0.05em',
   platePadX: '0.08em',
+
+  // Step 2 — wordmark rises to header position while plate scales to full section
   hold: 0.25,
   riseDuration: 1.2,
   riseEase: 'expo.inOut',
+
+  // Step 3 — headline lines slide up out of masks
   titleLead: 0.6,
   titleDuration: 1.5,
   titleStagger: 0.12,
   titleEase: 'expo.out',
+
+  // Step 4 — backdrop fades out, content slides in
   pageLead: 0.6,
   pageFade: 0.7,
   contentTravel: '1.2em',
@@ -47,19 +63,41 @@ const INTRO = {
   unlockDelay: 0.5,
 };
 
+// Scroll — image expands from slot up to container width and 90vh
 const SCROLL = {
-  slotTop: 79,
-  slotTopPhone: 44,
+  slotTop: 79, // vh
+  slotTopPhone: 44, // vh
   endAt: '10%',
   endHeight: '90vh',
-  gap: '16vh',
+  gap: '14vh',
   fadeAt: 0.2,
   fadeLength: 0.15,
   scrub: true as const,
+
+  // Intro section reveal
   revealStart: 'top 75%',
   revealDuration: 1.2,
   revealStagger: 0.08,
   revealEase: 'expo.out',
+};
+
+// Sticky Header transition
+const HEADER = {
+  startAt: 0.5,
+  scrub: true as const,
+  stripAt: 0.5,
+  logoAt: 0.6,
+};
+
+// Mobile menu drawer
+const MENU = {
+  duration: 0.9,
+  ease: 'expo.inOut',
+  itemsAt: 0.35,
+  travel: 40,
+  itemDuration: 1,
+  stagger: 0.06,
+  closeSpeed: 1.5,
 };
 
 const HOVER = {
@@ -68,69 +106,26 @@ const HOVER = {
   ease: 'cubic-bezier(0.87, 0, 0.13, 1)',
 };
 
-const pageLenis = () => (window as Window & { __lenis?: { stop(): void; start(): void } }).__lenis;
+const pageLenis = () =>
+  (window as Window & { __lenis?: { stop(): void; start(): void } }).__lenis;
 
 /* ------------------------------------------------------------------ */
-/*  4-Step Story Definitions & Best High-Resolution Images            */
+/*  Props & Type Definitions                                           */
 /* ------------------------------------------------------------------ */
 
-export type StudioLink = { label: string; href?: string; onClick?: () => void };
+export type StudioLink = {
+  label: string;
+  href?: string;
+  targetView?: string;
+};
 
-export interface ScrollStoryStep {
-  step: string;
-  badge: string;
+export type StudioIntro = {
+  label: string;
   heading: string;
   lead: string;
-  subHighlight: string;
-  image: string;
-  alt: string;
-  ctaText: string;
-}
+};
 
-export const DEFAULT_STORY_STEPS: ScrollStoryStep[] = [
-  {
-    step: '01 / 04',
-    badge: 'Morning Atelier',
-    heading: 'The Patisserie Craft & Morning Breads',
-    lead: 'We craft slow-baked pastries and warm golden muffins for patrons who appreciate true uncompromising taste. Fresh from copper deck ovens at 7:00 AM daily across Bahawalpur.',
-    subHighlight: 'Fresh Oven Batches · 7:00 AM Daily',
-    image: '/assets/images/hero_editorial_muffin_1794039141433.jpg',
-    alt: 'Signature Golden Honey Muffin',
-    ctaText: 'Explore Fresh Breads',
-  },
-  {
-    step: '02 / 04',
-    badge: 'Royal Tradition',
-    heading: 'Royal Desi Ghee Patashay & Sohan Halwa',
-    lead: 'Our signature generational mother recipe perfected since 1988. Slow-simmered in copper cauldrons with pure desi ghee, saffron threads, pistachio slivers, and fragrant green cardamom.',
-    subHighlight: '100% Pure Desi Ghee · Bahawalpur Legacy',
-    image: '/assets/images/muffinns_patashay_sweets_1784645566064.jpg',
-    alt: 'Royal Desi Ghee Patashay Traditional Sweets',
-    ctaText: 'Taste Heritage Mithai',
-  },
-  {
-    step: '03 / 04',
-    badge: 'Celebration Atelier',
-    heading: 'Lotus Biscoff Crunch & Velvet Three Milk',
-    lead: 'Soaked in three sweetened dairy milks and layered with velvety chantilly cream, Belgian chocolate ganache, and Lotus Biscoff crumble. The undisputed centerpiece of every family celebration.',
-    subHighlight: 'Custom Celebration & Bento Cakes',
-    image: '/assets/images/muffinns_lotus_biscof_cake.jpg',
-    alt: 'Lotus Biscoff Celebration Cake',
-    ctaText: 'Order Celebration Cake',
-  },
-  {
-    step: '04 / 04',
-    badge: 'Savory Patisserie',
-    heading: 'Golden Flaky Chicken Patties & Crispy Samosas',
-    lead: 'Layered with feather-light puff pastry, tender spiced chicken breast, and secret bakery seasonings. Served steaming warm for Bahawalpur’s cherished afternoon family high-tea tables.',
-    subHighlight: 'Flaky Puff Pastry · High Tea Tradition',
-    image: '/assets/images/muffinns_chicken_patty_1784645625734.jpg',
-    alt: 'Flaky Golden Chicken Patty High Tea Snack',
-    ctaText: 'Discover Savory High-Tea',
-  },
-];
-
-export interface CreativeStudioHeroProps {
+export type CreativeStudioHeroProps = {
   brand?: string;
   location?: { lead: string; place: string; line2: string };
   tagline?: [string, string];
@@ -138,17 +133,25 @@ export interface CreativeStudioHeroProps {
   links?: StudioLink[];
   leftCopy?: string[];
   rightCopy?: string[];
-  steps?: ScrollStoryStep[];
-  onNavigate?: (view: any) => void;
-}
+  image?: string;
+  fluidCursor?: boolean;
+  intro?: StudioIntro;
+  onNavigate?: (view: string) => void;
+};
+
+const DEFAULT_INTRO: StudioIntro = {
+  label: 'Heritage Since 1988',
+  heading: 'Where Royal Mithai Meets Modern Artisanal Baking',
+  lead: 'At Muffins Sweets & Bakers, we craft generational recipes with slow-churned pure desi ghee, stone-deck ovens fired before dawn, and uncompromising ingredients. From royal celebratory sweets to warm artisan muffins, we bring families together across Bahawalpur every single day.',
+};
 
 const DEFAULT_LINKS: StudioLink[] = [
-  { label: 'Artisanal Breads' },
-  { label: 'Signature Halwa' },
-  { label: 'Custom Cakes' },
-  { label: 'Traditional Mithai' },
-  { label: 'Savory Patisserie' },
-  { label: 'Direct Kitchen Order' },
+  { label: 'Our Story', targetView: 'story' },
+  { label: 'Full Menu', targetView: 'menu' },
+  { label: 'Artisan Breads', targetView: 'menu' },
+  { label: 'Royal Mithai', targetView: 'menu' },
+  { label: '7 Branches', targetView: 'find-us' },
+  { label: 'Track Order', targetView: 'tracker' },
 ];
 
 /* ------------------------------------------------------------------ */
@@ -158,17 +161,15 @@ const DEFAULT_LINKS: StudioLink[] = [
 function MaskedLines({
   lines,
   register,
-  className = '',
 }: {
   lines: string[];
   register: (el: HTMLElement | null) => void;
-  className?: string;
 }) {
   return lines.map((line) => (
     <span key={line} className="block overflow-hidden">
       <span
         ref={register}
-        className={`block will-change-transform [backface-visibility:hidden] ${className}`}
+        className="block will-change-transform [backface-visibility:hidden]"
         style={{ transform: 'translateY(105%)' }}
       >
         {line}
@@ -178,84 +179,184 @@ function MaskedLines({
 }
 
 /* ------------------------------------------------------------------ */
+/*  Rolling label for nav hover                                        */
+/* ------------------------------------------------------------------ */
+
+function RollingLabel({ text }: { text: string }) {
+  const chars = Array.from(text).map((c, i) => ({ c: c === ' ' ? '\u00A0' : c, i }));
+  const char = (shift: string) =>
+    chars.map(({ c, i }) => (
+      <span
+        key={i}
+        className={`inline-block transition-transform will-change-transform ${shift}`}
+        style={{
+          transitionDuration: `${HOVER.duration}s`,
+          transitionDelay: `${i * HOVER.stagger}s`,
+          transitionTimingFunction: HOVER.ease,
+        }}
+      >
+        {c}
+      </span>
+    ));
+
+  return (
+    <span className="relative block overflow-hidden pr-[0.08em] -mr-[0.08em] leading-[1.15]">
+      <span className="block">{char('group-hover:-translate-y-full')}</span>
+      <span aria-hidden className="absolute inset-0 block">
+        {char('translate-y-full group-hover:translate-y-0')}
+      </span>
+    </span>
+  );
+}
+
+/* ------------------------------------------------------------------ */
 /*  Main Component                                                    */
 /* ------------------------------------------------------------------ */
 
 export default function CreativeStudioHero({
-  brand = 'Muff Inns',
-  title = ['Decadence In', 'Every Bite'],
+  brand = 'Muffinns',
+  location = {
+    lead: 'Handcrafted In',
+    place: 'Bahawalpur, Punjab',
+    line2: 'Pure Desi Ghee · Est. 1988',
+  },
+  tagline = [
+    'Artisanal Sweets & Bakers',
+    '7 Flagship Branches in Bahawalpur',
+  ],
+  title = ['Generational Mastery,', 'Baked Fresh Daily.'],
   links = DEFAULT_LINKS,
   leftCopy = [
-    'Handcrafted croissants, warm muffins',
-    'and slow-simmered royal halwas',
-    'baked with pure farm desi ghee.',
+    'From deck ovens fired before dawn,',
+    'pure desi ghee royal patashay & muffins',
+    'crafted with generational heritage.',
   ],
   rightCopy = [
-    'Traditional recipes perfected since 1988',
-    'for weddings, cherished gatherings',
-    'and refined daily indulgence.',
+    'Slow-fermented artisan crust breads',
+    '& bespoke celebratory cakes baked',
+    'for Bahawalpur’s sweetest memories.',
   ],
-  steps = DEFAULT_STORY_STEPS,
+  image = '/assets/images/hero_editorial_muffin_1794039141433.jpg',
+  fluidCursor = false,
+  intro = DEFAULT_INTRO,
   onNavigate,
 }: CreativeStudioHeroProps) {
   const root = useRef<HTMLDivElement>(null);
-  const [activeStep, setActiveStep] = useState(0);
+  const [menuOpen, setMenuOpen] = useState(false);
+  const menuRef = useRef<HTMLDivElement>(null);
+  const menuItems = useRef<HTMLElement[]>([]);
+  const menuTl = useRef<gsap.core.Timeline | null>(null);
 
-  // Animation element refs
+  const collectMenuItem = (el: HTMLElement | null) => {
+    if (el && !menuItems.current.includes(el)) menuItems.current.push(el);
+  };
+
   const introLayerRef = useRef<HTMLDivElement>(null);
   const introLogoRef = useRef<HTMLSpanElement>(null);
   const plateRef = useRef<HTMLSpanElement>(null);
   const headerRef = useRef<HTMLElement>(null);
-  const headerLogoRef = useRef<any>(null);
+  const headerLogoRef = useRef<HTMLAnchorElement>(null);
   const stageRef = useRef<HTMLDivElement>(null);
   const rowRef = useRef<HTMLDivElement>(null);
-  const imageFrameRef = useRef<HTMLDivElement>(null);
-  const imageOverlayRef = useRef<HTMLDivElement>(null);
-  const indicatorsRef = useRef<HTMLDivElement>(null);
-
-  // 4 Scroll Images
-  const img1Ref = useRef<HTMLImageElement>(null);
-  const img2Ref = useRef<HTMLImageElement>(null);
-  const img3Ref = useRef<HTMLImageElement>(null);
-  const img4Ref = useRef<HTMLImageElement>(null);
-
-  // 4 Step Text Section Refs
-  const step1TextRef = useRef<HTMLDivElement>(null);
-  const step2TextRef = useRef<HTMLDivElement>(null);
-  const step3TextRef = useRef<HTMLDivElement>(null);
-  const step4TextRef = useRef<HTMLDivElement>(null);
+  const introSectionRef = useRef<HTMLElement>(null);
+  const introTextRefs = useRef<HTMLElement[]>([]);
+  const imageRef = useRef<HTMLImageElement>(null);
+  const copyRefs = useRef<HTMLParagraphElement[]>([]);
 
   const titleLines = useRef<HTMLElement[]>([]);
   const copyLines = useRef<HTMLElement[]>([]);
   const content = useRef<HTMLElement[]>([]);
 
+  const collect = (el: HTMLElement | null) => {
+    if (el && !content.current.includes(el)) content.current.push(el);
+  };
   const collectTitle = (el: HTMLElement | null) => {
     if (el && !titleLines.current.includes(el)) titleLines.current.push(el);
+  };
+
+  const navRef = useRef<HTMLElement>(null);
+  const stripRef = useRef<HTMLDivElement>(null);
+  const barLogoRef = useRef<HTMLAnchorElement>(null);
+  const heroLinks = useRef<HTMLElement[]>([]);
+  const barLinks = useRef<HTMLElement[]>([]);
+
+  const collectHeroLink = (el: HTMLElement | null) => {
+    collect(el);
+    if (el && !heroLinks.current.includes(el)) heroLinks.current.push(el);
+  };
+  const collectBarLink = (el: HTMLElement | null) => {
+    if (el && !barLinks.current.includes(el)) barLinks.current.push(el);
   };
   const collectCopy = (el: HTMLElement | null) => {
     if (el && !copyLines.current.includes(el)) copyLines.current.push(el);
   };
-
-  const copyRefs = useRef<HTMLParagraphElement[]>([]);
-
-  // Smooth jump to specific step
-  const scrollToStep = (stepIdx: number) => {
-    if (!stageRef.current) return;
-    const st = ScrollTrigger.getById('creative-scroll-stage');
-    if (st) {
-      const targets = [0.18, 0.45, 0.72, 0.94];
-      const targetRatio = targets[stepIdx] || 0.18;
-      const targetPos = st.start + (st.end - st.start) * targetRatio;
-      window.scrollTo({ top: targetPos, behavior: 'smooth' });
-    } else {
-      stageRef.current.scrollIntoView({ behavior: 'smooth' });
-    }
+  const collectIntroText = (el: HTMLElement | null) => {
+    if (el && !introTextRefs.current.includes(el)) introTextRefs.current.push(el);
   };
 
-  /* ------------------------------------------------------------------ */
-  /*  Buttery Smooth 4-Step Pinned Scroll Animation                     */
-  /* ------------------------------------------------------------------ */
+  // Scroll lock while the intro plays & while mobile menu is open
+  const lockedRef = useRef(false);
+  const lockScroll = useCallback(() => {
+    lockedRef.current = true;
+    document.documentElement.setAttribute('data-scroll-locked', '');
+    pageLenis()?.stop();
+    const block = (e: Event) => e.preventDefault();
+    const keys = new Set(['ArrowUp', 'ArrowDown', 'PageUp', 'PageDown', 'Home', 'End', ' ']);
+    const key = (e: KeyboardEvent) => {
+      if (keys.has(e.key)) e.preventDefault();
+    };
+    window.addEventListener('wheel', block, { passive: false });
+    window.addEventListener('touchmove', block, { passive: false });
+    window.addEventListener('keydown', key);
+    return () => {
+      if (!lockedRef.current) return;
+      lockedRef.current = false;
+      document.documentElement.removeAttribute('data-scroll-locked');
+      pageLenis()?.start();
+      window.removeEventListener('wheel', block);
+      window.removeEventListener('touchmove', block);
+      window.removeEventListener('keydown', key);
+    };
+  }, []);
 
+  // Phone menu sheet animation
+  useGSAP(
+    () => {
+      const sheet = menuRef.current;
+      if (!sheet) return;
+      menuTl.current = gsap
+        .timeline({ paused: true, defaults: { ease: MENU.ease } })
+        .set(sheet, { autoAlpha: 1 })
+        .fromTo(
+          sheet,
+          { clipPath: 'inset(0 0 100% 0)' },
+          { clipPath: 'inset(0 0 0% 0)', duration: MENU.duration },
+        )
+        .fromTo(
+          menuItems.current,
+          { y: MENU.travel, opacity: 0 },
+          { y: 0, opacity: 1, duration: MENU.itemDuration, stagger: MENU.stagger, ease: 'expo.out' },
+          MENU.itemsAt,
+        );
+    },
+    { scope: root },
+  );
+
+  const menuUnlock = useRef<(() => void) | null>(null);
+  useEffect(() => {
+    const tl = menuTl.current;
+    if (!tl) return;
+    if (menuOpen) {
+      menuUnlock.current = lockScroll();
+      tl.timeScale(1).play();
+    } else {
+      menuUnlock.current?.();
+      menuUnlock.current = null;
+      tl.timeScale(MENU.closeSpeed).reverse();
+    }
+  }, [menuOpen, lockScroll]);
+
+  // Main GSAP animation timeline
   useGSAP(
     () => {
       const stage = stageRef.current;
@@ -267,286 +368,166 @@ export default function CreativeStudioHero({
       const lines = titleLines.current;
       const copy = copyLines.current;
       const row = rowRef.current;
-      const imageFrame = imageFrameRef.current;
-      const img1 = img1Ref.current;
-      const img2 = img2Ref.current;
-      const img3 = img3Ref.current;
-      const img4 = img4Ref.current;
-      const step1Text = step1TextRef.current;
-      const step2Text = step2TextRef.current;
-      const step3Text = step3TextRef.current;
-      const step4Text = step4TextRef.current;
-      const overlay = imageOverlayRef.current;
-      const indicators = indicatorsRef.current;
+      const visual = imageRef.current;
+      const introSection = introSectionRef.current;
 
-      if (!stage || !header || !row || !introLayer || !logo || !plate || !target || !imageFrame) {
+      if (
+        !stage ||
+        !header ||
+        !row ||
+        !introSection ||
+        !introLayer ||
+        !logo ||
+        !plate ||
+        !target ||
+        !visual
+      ) {
         return;
       }
 
-      // Initial state of text sections and images
-      if (step1Text) gsap.set(step1Text, { autoAlpha: 0, yPercent: 35 });
-      if (step2Text) gsap.set(step2Text, { autoAlpha: 0, yPercent: 35 });
-      if (step3Text) gsap.set(step3Text, { autoAlpha: 0, yPercent: 35 });
-      if (step4Text) gsap.set(step4Text, { autoAlpha: 0, yPercent: 35 });
-      if (indicators) gsap.set(indicators, { autoAlpha: 0, y: -12 });
-      if (img2) gsap.set(img2, { autoAlpha: 0, scale: 1.05 });
-      if (img3) gsap.set(img3, { autoAlpha: 0, scale: 1.05 });
-      if (img4) gsap.set(img4, { autoAlpha: 0, scale: 1.05 });
-
-      // Pinned stage for continuous smooth image zoom + 4-step image/text changes
-      const zoomTl = gsap.timeline({
-        id: 'creative-scroll-stage',
-        scrollTrigger: {
-          id: 'creative-scroll-stage',
-          trigger: stage,
-          start: 'top top',
-          end: '+=360%',
-          pin: true,
-          pinSpacing: true,
-          scrub: 1.2,
-          invalidateOnRefresh: true,
-          anticipatePin: 1,
-          onUpdate: (self) => {
-            const p = self.progress;
-            if (p < 0.32) {
-              setActiveStep(0);
-            } else if (p < 0.58) {
-              setActiveStep(1);
-            } else if (p < 0.84) {
-              setActiveStep(2);
-            } else {
-              setActiveStep(3);
-            }
+      // 1. Scroll-driven Image expansion timeline
+      gsap
+        .timeline({
+          scrollTrigger: {
+            trigger: row,
+            start: () => `top ${(row.offsetTop / stage.offsetHeight) * 100}%`,
+            end: `top ${SCROLL.endAt}`,
+            scrub: SCROLL.scrub,
+            invalidateOnRefresh: true,
           },
-        },
-        defaults: { ease: 'power1.inOut' },
+          defaults: { ease: 'none' },
+        })
+        .to(
+          visual,
+          {
+            width: () => {
+              const cs = getComputedStyle(header);
+              return header.clientWidth - parseFloat(cs.paddingLeft) - parseFloat(cs.paddingRight);
+            },
+            height: SCROLL.endHeight,
+            duration: 1,
+          },
+          0,
+        )
+        .to(copyRefs.current, { opacity: 0, duration: SCROLL.fadeLength }, SCROLL.fadeAt);
+
+      // 2. Sticky Header transition
+      const nav = navRef.current;
+      const strip = stripRef.current;
+      const barLogo = barLogoRef.current;
+      const compact = window.matchMedia('(max-width: 767px)').matches;
+
+      if (nav && strip && barLogo) {
+        const from = (i: number) => {
+          const hero = heroLinks.current[i];
+          const slot = barLinks.current[i];
+          if (!hero || !slot) return { x: 0, y: 0, scaleX: 1, scaleY: 1 };
+          const heroY = hero.offsetTop + hero.offsetHeight / 2 + window.innerHeight * HEADER.startAt;
+          return {
+            x:
+              nav.offsetLeft +
+              hero.offsetLeft +
+              hero.offsetWidth / 2 -
+              (slot.offsetLeft + slot.offsetWidth / 2),
+            y: heroY - (slot.offsetTop + slot.offsetHeight / 2),
+            scaleX: hero.offsetWidth / slot.offsetWidth,
+            scaleY: hero.offsetHeight / slot.offsetHeight,
+          };
+        };
+
+        let shown = false;
+        const headerTl = gsap.timeline({
+          defaults: { ease: 'none' },
+          scrollTrigger: {
+            trigger: compact ? row : nav,
+            start: `top ${HEADER.startAt * 100}%`,
+            end: 'top top',
+            scrub: HEADER.scrub,
+            invalidateOnRefresh: true,
+            onUpdate: (self) => {
+              const show = self.progress > 0;
+              if (show === shown || compact) return;
+              shown = show;
+              gsap.set(heroLinks.current, { autoAlpha: show ? 0 : 1 });
+              gsap.set(barLinks.current, { autoAlpha: show ? 1 : 0 });
+            },
+          },
+        });
+
+        if (!compact) {
+          barLinks.current.forEach((link, i) =>
+            headerTl.fromTo(
+              link,
+              {
+                x: () => from(i).x,
+                y: () => from(i).y,
+                scaleX: () => from(i).scaleX,
+                scaleY: () => from(i).scaleY,
+              },
+              { x: 0, y: 0, scaleX: 1, scaleY: 1, duration: 1 },
+              0,
+            ),
+          );
+        }
+
+        headerTl
+          .fromTo(
+            strip,
+            { yPercent: -100, y: 0 },
+            { yPercent: 0, duration: 1 - HEADER.stripAt },
+            HEADER.stripAt,
+          )
+          .fromTo(
+            barLogo,
+            { yPercent: -110, y: 0 },
+            { yPercent: 0, duration: 1 - HEADER.logoAt },
+            HEADER.logoAt,
+          );
+      }
+
+      // 3. Intro text reveal with SplitText
+      const split = SplitText.create(introTextRefs.current, {
+        type: 'lines',
+        mask: 'lines',
+        linesClass: 'will-change-transform [backface-visibility:hidden]',
+        autoSplit: true,
+        onSplit: (self) =>
+          gsap.from(self.lines, {
+            yPercent: 105,
+            duration: SCROLL.revealDuration,
+            stagger: SCROLL.revealStagger,
+            ease: SCROLL.revealEase,
+            scrollTrigger: { trigger: introSection, start: SCROLL.revealStart, once: true },
+          }),
       });
 
-      // 1. Initial Hero Elements fade out
-      zoomTl.to(
-        header,
-        {
-          opacity: 0,
-          y: -25,
-          duration: 0.2,
-        },
-        0,
-      );
-
-      const validLines = lines.filter(Boolean);
-      if (validLines.length > 0) {
-        zoomTl.to(
-          validLines,
-          {
-            opacity: 0,
-            y: -35,
-            duration: 0.22,
-          },
-          0,
-        );
-      }
-
-      const validCopyRefs = copyRefs.current.filter(Boolean);
-      if (validCopyRefs.length > 0) {
-        zoomTl.to(
-          validCopyRefs,
-          {
-            opacity: 0,
-            y: -25,
-            duration: 0.22,
-          },
-          0,
-        );
-      }
-
-      // 2. Expand frame to full-bleed cinematic background
-      zoomTl.to(
-        imageFrame,
-        {
-          scale: () => (window.innerWidth < 768 ? 3.3 : 2.65),
-          y: () => (window.innerWidth < 768 ? '-12vh' : '-15vh'),
-          borderRadius: '0px',
-          borderWidth: '0px',
-          boxShadow: 'none',
-          duration: 0.45,
-          ease: 'power2.out',
-        },
-        0,
-      );
-
-      if (overlay) {
-        zoomTl.to(
-          overlay,
-          {
-            opacity: 1,
-            duration: 0.35,
-            ease: 'power2.out',
-          },
-          0.12,
-        );
-      }
-
-      if (indicators) {
-        zoomTl.to(
-          indicators,
-          {
-            autoAlpha: 1,
-            y: 0,
-            duration: 0.3,
-            ease: 'power2.out',
-          },
-          0.15,
-        );
-      }
-
-      // -------------------------------------------------------------
-      // SECTION 1: Morning Atelier (Honey Muffin & Artisan Breads)
-      // -------------------------------------------------------------
-      if (step1Text) {
-        zoomTl.fromTo(
-          step1Text,
-          { yPercent: 35, autoAlpha: 0 },
-          { yPercent: 0, autoAlpha: 1, duration: 0.25, ease: 'power2.out' },
-          0.16,
-        );
-      }
-
-      // -------------------------------------------------------------
-      // TRANSITION 1 -> 2: (Image 1 -> Image 2, Text 1 -> Text 2)
-      // -------------------------------------------------------------
-      if (step1Text) {
-        zoomTl.to(
-          step1Text,
-          { yPercent: -25, autoAlpha: 0, duration: 0.18, ease: 'power2.in' },
-          0.34,
-        );
-      }
-
-      if (img1) {
-        zoomTl.to(
-          img1,
-          { opacity: 0, scale: 1.04, duration: 0.22, ease: 'power1.inOut' },
-          0.34,
-        );
-      }
-
-      if (img2) {
-        zoomTl.fromTo(
-          img2,
-          { autoAlpha: 0, scale: 1.06 },
-          { autoAlpha: 1, scale: 1, duration: 0.24, ease: 'power1.inOut' },
-          0.35,
-        );
-      }
-
-      if (step2Text) {
-        zoomTl.fromTo(
-          step2Text,
-          { yPercent: 30, autoAlpha: 0 },
-          { yPercent: 0, autoAlpha: 1, duration: 0.24, ease: 'power2.out' },
-          0.39,
-        );
-      }
-
-      // -------------------------------------------------------------
-      // TRANSITION 2 -> 3: (Image 2 -> Image 3, Text 2 -> Text 3)
-      // -------------------------------------------------------------
-      if (step2Text) {
-        zoomTl.to(
-          step2Text,
-          { yPercent: -25, autoAlpha: 0, duration: 0.18, ease: 'power2.in' },
-          0.60,
-        );
-      }
-
-      if (img2) {
-        zoomTl.to(
-          img2,
-          { opacity: 0, scale: 1.04, duration: 0.22, ease: 'power1.inOut' },
-          0.60,
-        );
-      }
-
-      if (img3) {
-        zoomTl.fromTo(
-          img3,
-          { autoAlpha: 0, scale: 1.06 },
-          { autoAlpha: 1, scale: 1, duration: 0.24, ease: 'power1.inOut' },
-          0.61,
-        );
-      }
-
-      if (step3Text) {
-        zoomTl.fromTo(
-          step3Text,
-          { yPercent: 30, autoAlpha: 0 },
-          { yPercent: 0, autoAlpha: 1, duration: 0.24, ease: 'power2.out' },
-          0.65,
-        );
-      }
-
-      // -------------------------------------------------------------
-      // TRANSITION 3 -> 4: (Image 3 -> Image 4, Text 3 -> Text 4)
-      // -------------------------------------------------------------
-      if (step3Text) {
-        zoomTl.to(
-          step3Text,
-          { yPercent: -25, autoAlpha: 0, duration: 0.18, ease: 'power2.in' },
-          0.85,
-        );
-      }
-
-      if (img3) {
-        zoomTl.to(
-          img3,
-          { opacity: 0, scale: 1.04, duration: 0.22, ease: 'power1.inOut' },
-          0.85,
-        );
-      }
-
-      if (img4) {
-        zoomTl.fromTo(
-          img4,
-          { autoAlpha: 0, scale: 1.06 },
-          { autoAlpha: 1, scale: 1, duration: 0.24, ease: 'power1.inOut' },
-          0.86,
-        );
-      }
-
-      if (step4Text) {
-        zoomTl.fromTo(
-          step4Text,
-          { yPercent: 30, autoAlpha: 0 },
-          { yPercent: 0, autoAlpha: 1, duration: 0.24, ease: 'power2.out' },
-          0.90,
-        );
-      }
-
-      // Reduced-motion safety fallback
-      const clearTargets = [...lines, ...copy].filter(Boolean);
+      // Reduced motion fallback
       if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
         gsap.set(introLayer, { autoAlpha: 0 });
-        if (clearTargets.length > 0) {
-          gsap.set(clearTargets, { clearProps: 'all' });
-        }
-        if (step1Text) gsap.set(step1Text, { autoAlpha: 1, yPercent: 0 });
+        gsap.set([...lines, ...copy], { clearProps: 'all' });
         return;
       }
 
       gsap.set(target, { opacity: 0 });
 
+      // Step 2's Flip fit
       const fit = Flip.fit(logo, target, {
         scale: true,
         duration: INTRO.riseDuration,
         ease: INTRO.riseEase,
       });
 
+      // Intro timeline
+      window.scrollTo(0, 0);
+      const unlock = lockScroll();
       const tl = gsap.timeline({ defaults: { ease: INTRO.meetEase, duration: INTRO.meetDuration } });
 
+      // Step 1 — wordmark drops in, plate grows up
       tl.addLabel('meet')
         .fromTo(logo, { y: `-${INTRO.travel}`, opacity: 1 }, { y: 0 }, 'meet')
         .fromTo(plate, { scaleY: 0, transformOrigin: '50% 100%', opacity: 1 }, { scaleY: 1 }, 'meet');
 
+      // Step 2 — wordmark flips onto header wordmark; plate grows to fill section
       tl.addLabel('rise', `meet+=${INTRO.meetDuration + INTRO.hold}`)
         .add(fit as gsap.core.Tween, 'rise')
         .to(
@@ -561,37 +542,45 @@ export default function CreativeStudioHero({
           'rise',
         );
 
-      if (validLines.length > 0) {
-        tl.addLabel('title', `rise+=${INTRO.riseDuration - INTRO.titleLead}`).fromTo(
-          validLines,
-          { yPercent: 105, y: 0 },
-          {
-            yPercent: 0,
-            duration: INTRO.titleDuration,
-            stagger: INTRO.titleStagger,
-            ease: INTRO.titleEase,
-          },
-          'title',
-        );
-      }
-
-      tl.set(logo, { autoAlpha: 0 }, `rise+=${INTRO.riseDuration}`).set(target, { opacity: 1 }, '<');
-
-      const validCopy = copy.filter(Boolean);
-
-      tl.addLabel('page', `rise+=${INTRO.riseDuration - INTRO.pageLead}`)
-        .to(introLayer, { autoAlpha: 0, duration: INTRO.pageFade, ease: 'none' }, 'page');
-
-      tl.fromTo(
-        imageFrame,
-        { y: INTRO.imageTravel, opacity: 0 },
-        { y: 0, opacity: 1, duration: INTRO.contentDuration, ease: INTRO.contentEase },
-        'page',
+      // Step 3 — headline lines rise out of masks
+      tl.addLabel('title', `rise+=${INTRO.riseDuration - INTRO.titleLead}`).fromTo(
+        lines,
+        { yPercent: 105, y: 0 },
+        {
+          yPercent: 0,
+          duration: INTRO.titleDuration,
+          stagger: INTRO.titleStagger,
+          ease: INTRO.titleEase,
+        },
+        'title',
       );
 
-      if (validCopy.length > 0) {
-        tl.fromTo(
-          validCopy,
+      // Hand-over: swap intro wordmark with real header wordmark
+      tl.set(logo, { autoAlpha: 0 }, `rise+=${INTRO.riseDuration}`).set(target, { opacity: 1 }, '<');
+
+      // Step 4 — backdrop fades away, content slides in
+      tl.addLabel('page', `rise+=${INTRO.riseDuration - INTRO.pageLead}`)
+        .to(introLayer, { autoAlpha: 0, duration: INTRO.pageFade, ease: 'none' }, 'page')
+        .fromTo(
+          content.current,
+          { y: INTRO.contentTravel, opacity: 0 },
+          {
+            y: 0,
+            opacity: 1,
+            duration: INTRO.contentDuration,
+            stagger: INTRO.contentStagger,
+            ease: INTRO.contentEase,
+          },
+          'page',
+        )
+        .fromTo(
+          visual,
+          { y: INTRO.imageTravel, opacity: 0 },
+          { y: 0, opacity: 1, duration: INTRO.contentDuration, ease: INTRO.contentEase },
+          'page',
+        )
+        .fromTo(
+          copy,
           { yPercent: 105, y: 0 },
           {
             yPercent: 0,
@@ -600,21 +589,51 @@ export default function CreativeStudioHero({
             ease: INTRO.contentEase,
           },
           `page+=${INTRO.copyDelay}`,
-        );
-      }
+        )
+        .call(unlock, [], `page+=${INTRO.unlockDelay}`);
 
       return () => {
-        zoomTl.kill();
+        unlock();
+        split.revert();
         tl.kill();
       };
     },
     { scope: root },
   );
 
+  const half = Math.ceil(links.length / 2);
+
+  const handleLinkClick = (e: React.MouseEvent, link: StudioLink) => {
+    if (link.targetView && onNavigate) {
+      e.preventDefault();
+      onNavigate(link.targetView);
+    }
+  };
+
+  // Sticky header link slot
+  const barLink = (link: StudioLink, i: number) => (
+    <a
+      key={link.label}
+      ref={collectBarLink}
+      data-flip-id={`link-${i}`}
+      href={link.href ?? '#'}
+      onClick={(e) => handleLinkClick(e, link)}
+      className="group pointer-events-auto flex items-start gap-[0.6vw] opacity-0 will-change-[transform,opacity] text-[#21100B] hover:text-[#D25027] transition-colors"
+    >
+      <span
+        className="mt-[0.2em] text-[0.36em] font-medium tabular-nums text-[#D25027]"
+        style={{ fontFamily: FONT_INDEX }}
+      >
+        {String(i + 1).padStart(2, '0')}
+      </span>
+      <RollingLabel text={link.label} />
+    </a>
+  );
+
   return (
     <div
       ref={root}
-      className="relative z-10 w-full bg-[#fdfbf9] text-[#21100B] rounded-3xl overflow-hidden shadow-xs border border-[#32140D]/10"
+      className="bg-[#FAF7F2] text-[#21100B] [--slot:var(--slot-desktop)] max-md:[--slot:var(--slot-phone)]"
       style={
         {
           fontFamily: FONT,
@@ -623,11 +642,114 @@ export default function CreativeStudioHero({
         } as React.CSSProperties
       }
     >
-      {/* Main Hero Viewport Section */}
-      <section className="relative w-full overflow-hidden">
-        <div ref={stageRef} className="relative h-svh w-full flex flex-col justify-between overflow-hidden">
-          
-          {/* Intro backdrop: dark page + white plate */}
+      {fluidCursor && <FluidCursor />}
+
+      {/* Sticky header */}
+      <div className="pointer-events-none fixed inset-x-0 top-0 z-40 text-[1.5vw] leading-none font-medium tracking-[-0.02em] max-md:text-[15px]">
+        <div
+          ref={stripRef}
+          className="absolute inset-0 bg-[#FAF7F2]/95 backdrop-blur-md border-b border-[#21100B]/10 will-change-transform shadow-xs"
+          style={{ transform: 'translateY(-100%)' }}
+        />
+        <div className="relative grid grid-cols-[1fr_auto_1fr] items-center px-[4vw] py-[1.8vh] max-md:py-[2.2vh] md:px-[2.4vw]">
+          <nav className="hidden gap-[3vw] md:flex">{links.slice(0, half).map(barLink)}</nav>
+
+          <span className="block overflow-hidden">
+            <a
+              ref={barLogoRef}
+              href="#"
+              onClick={(e) => {
+                e.preventDefault();
+                onNavigate?.('home');
+              }}
+              className="pointer-events-auto block text-[2.5vw] font-black tracking-[-0.03em] will-change-transform max-md:text-[26px] text-[#21100B]"
+              style={{ ...LOGO_STYLE, transform: 'translateY(-110%)' }}
+            >
+              {brand}
+            </a>
+          </span>
+
+          <nav className="hidden justify-end gap-[3vw] md:flex">
+            {links.slice(half).map((link, i) => barLink(link, half + i))}
+          </nav>
+
+          {/* Mobile hamburger button */}
+          <button
+            type="button"
+            ref={collect}
+            aria-label="Open menu"
+            onClick={() => setMenuOpen(true)}
+            className="pointer-events-auto col-start-3 flex h-[28px] w-[28px] flex-col items-end justify-center gap-[6px] justify-self-end md:hidden text-[#21100B]"
+          >
+            <span className="block h-[1.5px] w-[24px] bg-current" />
+            <span className="block h-[1.5px] w-[16px] bg-current" />
+          </button>
+        </div>
+      </div>
+
+      {/* Phone menu sheet */}
+      <div
+        ref={menuRef}
+        className="invisible fixed inset-0 z-50 flex flex-col bg-[#21100B] px-[6vw] pt-[3vh] pb-[6vh] text-[#FAF7F2] will-change-[clip-path] md:hidden"
+        aria-hidden={!menuOpen}
+      >
+        <div ref={collectMenuItem} className="grid grid-cols-[1fr_auto_1fr] items-center">
+          <span
+            className="col-start-2 text-[30px] leading-none font-black tracking-[-0.03em] text-[#FAF7F2]"
+            style={LOGO_STYLE}
+          >
+            {brand}
+          </span>
+          <button
+            type="button"
+            aria-label="Close menu"
+            onClick={() => setMenuOpen(false)}
+            className="relative col-start-3 h-[28px] w-[28px] justify-self-end"
+          >
+            <span className="absolute top-1/2 left-1/2 h-[1.5px] w-[24px] -translate-1/2 rotate-45 bg-current" />
+            <span className="absolute top-1/2 left-1/2 h-[1.5px] w-[24px] -translate-1/2 -rotate-45 bg-current" />
+          </button>
+        </div>
+
+        <nav className="mt-auto flex flex-col gap-[2.4vh] text-[9.5vw] leading-none font-medium tracking-[-0.03em]">
+          {links.map((link, i) => (
+            <a
+              key={link.label}
+              ref={collectMenuItem}
+              href={link.href ?? '#'}
+              onClick={(e) => {
+                setMenuOpen(false);
+                handleLinkClick(e, link);
+              }}
+              className="flex items-start gap-[3vw] text-[#FAF7F2] hover:text-[#DDA15E] transition-colors"
+            >
+              <span
+                className="mt-[0.25em] text-[0.32em] font-medium tabular-nums text-[#DDA15E]"
+                style={{ fontFamily: FONT_INDEX }}
+              >
+                {String(i + 1).padStart(2, '0')}
+              </span>
+              {link.label}
+            </a>
+          ))}
+        </nav>
+
+        <p ref={collectMenuItem} className="mt-[5vh] text-[13px] leading-[1.45] text-[#DDA15E]/80">
+          {location.lead} {location.place}
+          <br />
+          {tagline[0]} · {tagline[1]}
+        </p>
+      </div>
+
+      {/* Hero Section */}
+      <section
+        className="relative overflow-hidden"
+        style={{
+          height: `calc(var(--slot) + ${SCROLL.endHeight} + ${SCROLL.gap})`,
+        }}
+      >
+        <div ref={stageRef} className="relative h-svh bg-[#FAF7F2]">
+          {/* Intro backdrop: warm dark chocolate + cream plate */}
           <div
             ref={introLayerRef}
             className="pointer-events-none absolute inset-0 z-10 grid place-items-center bg-[#21100B] will-change-[opacity]"
@@ -638,7 +760,7 @@ export default function CreativeStudioHero({
             >
               <span
                 ref={plateRef}
-                className="absolute bg-[#fdfbf9] opacity-0 will-change-transform"
+                className="absolute bg-[#FAF7F2] opacity-0 will-change-transform"
                 style={{
                   top: `calc(${INTRO.platePadY} * -1)`,
                   bottom: `calc(${INTRO.platePadY} * -1)`,
@@ -646,13 +768,13 @@ export default function CreativeStudioHero({
                   right: `calc(${INTRO.platePadX} * -1)`,
                 }}
               />
-              <span aria-hidden="true" className="invisible">
+              <span aria-hidden className="invisible">
                 {brand}
               </span>
             </span>
           </div>
 
-          {/* Intro wordmark */}
+          {/* Intro wordmark: dark chocolate */}
           <div className="pointer-events-none absolute inset-0 z-20 grid place-items-center">
             <span
               ref={introLogoRef}
@@ -663,278 +785,146 @@ export default function CreativeStudioHero({
             </span>
           </div>
 
-          {/* Top brand header */}
+          {/* Top bar in Hero */}
           <header
             ref={headerRef}
-            className="relative z-30 flex items-center justify-center px-[4vw] pt-[2.4vh] text-[1.15vw] leading-[1.2] font-normal md:px-[2.4vw] md:pt-[3.2vh] text-[#21100B]"
+            className="grid grid-cols-[1fr_auto_1fr] items-start px-[4vw] pt-[2.4vh] text-[1.1vw] leading-[1.3] font-normal max-md:items-center max-md:gap-[3vw] max-md:text-[11px] md:px-[2.4vw] md:pt-[3.2vh] text-[#21100B]/85"
           >
-            <button
-              type="button"
+            <p ref={collect} className="will-change-[transform,opacity]">
+              {location.lead}{' '}
+              <span className="underline underline-offset-[0.2em] decoration-[#D25027]/50 font-medium">
+                {location.place}
+              </span>
+              <span className="max-md:hidden text-[#21100B]/60">
+                <br />
+                {location.line2}
+              </span>
+            </p>
+
+            <a
               ref={headerLogoRef}
-              onClick={() => onNavigate && onNavigate('home')}
-              className="relative z-30 text-[2.9vw] leading-none font-black tracking-[-0.03em] max-md:text-[28px] text-[#21100B] cursor-pointer hover:opacity-85 transition-opacity"
+              href="#"
+              onClick={(e) => {
+                e.preventDefault();
+                onNavigate?.('home');
+              }}
+              className="relative z-30 text-[2.8vw] leading-none font-black tracking-[-0.03em] max-md:text-[28px] text-[#21100B]"
               style={LOGO_STYLE}
             >
               {brand}
-            </button>
+            </a>
+
+            <p ref={collect} className="text-right will-change-[transform,opacity] max-md:hidden text-[#21100B]/70">
+              {tagline[0]}
+              <br />
+              <span className="text-[#D25027] font-medium">{tagline[1]}</span>
+            </p>
           </header>
 
-          {/* Headline — Orange-Brownish Mix */}
-          <h1 className="relative z-20 mt-[2vh] md:mt-[3vh] text-center text-[10vw] leading-[0.88] md:text-[7.5vw] font-black tracking-[-0.06em] uppercase text-[#B84A1C]">
-            <MaskedLines 
-              lines={title} 
-              register={collectTitle} 
-              className="bg-gradient-to-r from-[#E94F16] via-[#B84A1C] to-[#451B0F] bg-clip-text text-transparent inline-block pb-1"
-            />
+          {/* Big Editorial Headline */}
+          <h1 className="relative z-20 mt-[5vh] text-center text-[10vw] leading-[0.88] md:mt-[8vh] md:text-[8vw] font-bold tracking-[-0.05em] uppercase text-[#21100B]">
+            <MaskedLines lines={title} register={collectTitle} />
           </h1>
+
+          {/* Mobile Tagline */}
+          <p
+            ref={collect}
+            className="mt-[3vh] text-center text-[13px] leading-[1.4] will-change-[transform,opacity] md:hidden text-[#21100B]/75"
+          >
+            {tagline[0]}
+            <br />
+            <span className="text-[#D25027] font-semibold">{tagline[1]}</span>
+          </p>
+
+          {/* Hero Nav Links (glides to header on scroll) */}
+          <nav
+            ref={navRef}
+            className="absolute inset-x-0 top-[62vh] flex items-baseline justify-between px-[3vw] text-[2.4vw] leading-none font-medium tracking-[-0.03em] max-md:hidden text-[#21100B]"
+          >
+            {links.map((link, i) => (
+              <a
+                key={link.label}
+                ref={collectHeroLink}
+                data-flip-id={`link-${i}`}
+                href={link.href ?? '#'}
+                onClick={(e) => handleLinkClick(e, link)}
+                className="group flex items-start gap-[0.8vw] will-change-[transform,opacity] hover:text-[#D25027] transition-colors"
+              >
+                <span
+                  className="mt-[0.25em] text-[0.36em] font-medium tabular-nums text-[#D25027]"
+                  style={{ fontFamily: FONT_INDEX }}
+                >
+                  {String(i + 1).padStart(2, '0')}
+                </span>
+                <RollingLabel text={link.label} />
+              </a>
+            ))}
+          </nav>
 
           {/* Bottom row: copy | visual | copy */}
           <div
             ref={rowRef}
-            className="relative z-30 w-full mb-[4vh] grid grid-cols-[1fr_38.4vw_1fr] items-center px-[4vw] max-md:grid-cols-1 max-md:gap-4"
+            className="absolute inset-x-0 grid grid-cols-[1fr_38.4vw_1fr] items-start max-md:grid-cols-[1fr_86vw_1fr]"
+            style={{ top: 'var(--slot)' }}
           >
-            <div
+            <p
               ref={(el) => {
                 if (el) copyRefs.current[0] = el;
               }}
-              className="text-left md:text-center text-[1.2vw] max-md:text-xs leading-relaxed font-light tracking-[-0.02em] will-change-[opacity,transform] text-[#32140D] px-4"
+              className="mx-auto text-center text-[1.25vw] leading-[1.4] font-normal tracking-[-0.02em] will-change-[opacity] max-md:hidden text-[#21100B]/80 max-w-xs"
             >
               <MaskedLines lines={leftCopy} register={collectCopy} />
+            </p>
+
+            {/* Visual: peeks up from bottom, grows on scroll */}
+            <div className="z-30 col-start-2 h-[45vh] w-[38.4vw] max-w-none justify-self-center max-md:w-[86vw] rounded-2xl overflow-hidden shadow-2xl border border-[#21100B]/10 bg-[#FAF7F2]">
+              <img
+                ref={imageRef}
+                src={image}
+                alt="Muffins Sweets & Bakers Artisanal Creations"
+                className="h-full w-full object-cover will-change-[transform,width,height]"
+              />
             </div>
 
-            {/* Visual Container: Holds the 4 layered bakery images that transition smoothly with scroll */}
-            <div className="z-30 justify-self-center flex items-center justify-center overflow-visible">
-              <div
-                ref={imageFrameRef}
-                className="relative h-[42vh] w-[38.4vw] max-md:h-[30vh] max-md:w-[86vw] aspect-[16/10] md:aspect-[4/3] rounded-2xl bg-[#e6e6e3] overflow-hidden shadow-2xl will-change-transform border border-[#32140D]/12"
-              >
-                {/* Image 1: Golden Honey Muffin (Morning Atelier) */}
-                <img
-                  ref={img1Ref}
-                  src={steps[0].image}
-                  alt={steps[0].alt}
-                  loading="eager"
-                  decoding="async"
-                  className="absolute inset-0 h-full w-full object-cover object-center will-change-[opacity,transform]"
-                />
-
-                {/* Image 2: Royal Desi Ghee Patashay (Heritage Mithai) */}
-                <img
-                  ref={img2Ref}
-                  src={steps[1].image}
-                  alt={steps[1].alt}
-                  loading="eager"
-                  decoding="async"
-                  className="absolute inset-0 h-full w-full object-cover object-center will-change-[opacity,transform]"
-                />
-
-                {/* Image 3: Lotus Biscoff Cake (Celebration Atelier) */}
-                <img
-                  ref={img3Ref}
-                  src={steps[2].image}
-                  alt={steps[2].alt}
-                  loading="lazy"
-                  decoding="async"
-                  className="absolute inset-0 h-full w-full object-cover object-center will-change-[opacity,transform]"
-                />
-
-                {/* Image 4: Golden Flaky Chicken Patty (Savory Patisserie) */}
-                <img
-                  ref={img4Ref}
-                  src={steps[3].image}
-                  alt={steps[3].alt}
-                  loading="lazy"
-                  decoding="async"
-                  className="absolute inset-0 h-full w-full object-cover object-center will-change-[opacity,transform]"
-                />
-              </div>
-            </div>
-
-            <div
+            <p
               ref={(el) => {
                 if (el) copyRefs.current[1] = el;
               }}
-              className="text-right md:text-center text-[1.2vw] max-md:text-xs leading-relaxed font-light tracking-[-0.02em] will-change-[opacity,transform] text-[#32140D] px-4"
+              className="mx-auto text-center text-[1.25vw] leading-[1.4] font-normal tracking-[-0.02em] will-change-[opacity] max-md:hidden text-[#21100B]/80 max-w-xs"
             >
               <MaskedLines lines={rightCopy} register={collectCopy} />
-            </div>
+            </p>
           </div>
-
-          {/* Fullscreen gradient overlay for crisp text readability on full screen image */}
-          <div
-            ref={imageOverlayRef}
-            className="pointer-events-none absolute inset-0 z-35 bg-gradient-to-t from-black/92 via-black/55 to-black/25 opacity-0 will-change-[opacity]"
-          />
-
-          {/* Floating Interactive 4-Step Indicator Bar */}
-          <div
-            ref={indicatorsRef}
-            className="absolute top-6 right-6 md:top-8 md:right-10 z-45 flex items-center gap-1.5 sm:gap-2 bg-stone-900/60 backdrop-blur-md px-3 sm:px-4 py-1.5 rounded-full border border-white/20 text-xs shadow-xl"
-          >
-            {steps.map((s, idx) => (
-              <button
-                key={idx}
-                type="button"
-                onClick={() => scrollToStep(idx)}
-                className={`flex items-center gap-1.5 px-2.5 sm:px-3 py-1 rounded-full text-[11px] font-mono tracking-wider transition-all duration-300 cursor-pointer ${
-                  activeStep === idx
-                    ? 'bg-amber-400 text-stone-950 font-black shadow-md shadow-amber-400/40 scale-105'
-                    : 'text-white/70 hover:text-white hover:bg-white/10'
-                }`}
-              >
-                <span>{s.step.split(' ')[0]}</span>
-                <span className="hidden sm:inline font-sans text-[10px] font-semibold uppercase tracking-normal">
-                  {idx === 0 ? 'Muffins' : idx === 1 ? 'Mithai' : idx === 2 ? 'Cakes' : 'Savory'}
-                </span>
-              </button>
-            ))}
-          </div>
-
-          {/* ------------------------------------------------------------------ */}
-          {/* STEP 1 TEXT SECTION: Morning Atelier (Original Font Design Style)  */}
-          {/* ------------------------------------------------------------------ */}
-          <div
-            ref={step1TextRef}
-            className="absolute bottom-8 sm:bottom-12 md:bottom-16 left-0 right-0 z-40 px-[4vw] md:px-[6vw] grid gap-[3vw] md:grid-cols-2 items-end pointer-events-auto will-change-[transform,opacity]"
-          >
-            <div>
-              <p className="flex items-center gap-[0.6vw] text-[1.15vw] max-md:gap-[2vw] max-md:text-[13px] text-amber-300 font-mono uppercase tracking-wider font-bold drop-shadow-[0_2px_8px_rgba(0,0,0,0.85)]">
-                <span className="size-[0.7vw] rounded-full bg-amber-400 max-md:size-[7px] animate-pulse drop-shadow" />
-                <span>{steps[0].badge} · {steps[0].step}</span>
-              </p>
-              <h2 className="mt-[1.5vh] text-[2.6vw] font-serif font-black tracking-[-0.03em] max-md:text-[24px] text-white leading-[1.15] drop-shadow-[0_2px_12px_rgba(0,0,0,0.9)]">
-                {steps[0].heading}
-              </h2>
-            </div>
-            <div className="space-y-4">
-              <p className="text-[2.0vw] leading-[1.32] font-normal tracking-[-0.02em] max-md:text-[17px] text-white/95 font-serif drop-shadow-[0_2px_10px_rgba(0,0,0,0.85)] max-w-2xl">
-                {steps[0].lead}
-              </p>
-              <div className="flex items-center gap-3">
-                <button
-                  type="button"
-                  onClick={() => onNavigate && onNavigate('menu')}
-                  className="group inline-flex items-center gap-2 px-5 py-2.5 rounded-full bg-amber-400 hover:bg-amber-300 text-stone-950 font-bold text-xs uppercase tracking-wider shadow-lg shadow-amber-400/30 transition-all transform hover:-translate-y-0.5 active:translate-y-0 cursor-pointer"
-                >
-                  <span>{steps[0].ctaText}</span>
-                  <ArrowRight className="w-3.5 h-3.5 transition-transform group-hover:translate-x-1" />
-                </button>
-                <span className="text-xs font-mono text-amber-300/80 uppercase tracking-wider">
-                  {steps[0].subHighlight}
-                </span>
-              </div>
-            </div>
-          </div>
-
-          {/* ------------------------------------------------------------------ */}
-          {/* STEP 2 TEXT SECTION: Royal Tradition (Original Font Design Style)  */}
-          {/* ------------------------------------------------------------------ */}
-          <div
-            ref={step2TextRef}
-            className="absolute bottom-8 sm:bottom-12 md:bottom-16 left-0 right-0 z-40 px-[4vw] md:px-[6vw] grid gap-[3vw] md:grid-cols-2 items-end pointer-events-auto will-change-[transform,opacity]"
-          >
-            <div>
-              <p className="flex items-center gap-[0.6vw] text-[1.15vw] max-md:gap-[2vw] max-md:text-[13px] text-amber-300 font-mono uppercase tracking-wider font-bold drop-shadow-[0_2px_8px_rgba(0,0,0,0.85)]">
-                <span className="size-[0.7vw] rounded-full bg-amber-400 max-md:size-[7px] animate-pulse drop-shadow" />
-                <span>{steps[1].badge} · {steps[1].step}</span>
-              </p>
-              <h2 className="mt-[1.5vh] text-[2.6vw] font-serif font-black tracking-[-0.03em] max-md:text-[24px] text-white leading-[1.15] drop-shadow-[0_2px_12px_rgba(0,0,0,0.9)]">
-                {steps[1].heading}
-              </h2>
-            </div>
-            <div className="space-y-4">
-              <p className="text-[2.0vw] leading-[1.32] font-normal tracking-[-0.02em] max-md:text-[17px] text-white/95 font-serif drop-shadow-[0_2px_10px_rgba(0,0,0,0.85)] max-w-2xl">
-                {steps[1].lead}
-              </p>
-              <div className="flex items-center gap-3">
-                <button
-                  type="button"
-                  onClick={() => onNavigate && onNavigate('menu')}
-                  className="group inline-flex items-center gap-2 px-5 py-2.5 rounded-full bg-amber-400 hover:bg-amber-300 text-stone-950 font-bold text-xs uppercase tracking-wider shadow-lg shadow-amber-400/30 transition-all transform hover:-translate-y-0.5 active:translate-y-0 cursor-pointer"
-                >
-                  <span>{steps[1].ctaText}</span>
-                  <ArrowRight className="w-3.5 h-3.5 transition-transform group-hover:translate-x-1" />
-                </button>
-                <span className="text-xs font-mono text-amber-300/80 uppercase tracking-wider">
-                  {steps[1].subHighlight}
-                </span>
-              </div>
-            </div>
-          </div>
-
-          {/* ------------------------------------------------------------------ */}
-          {/* STEP 3 TEXT SECTION: Celebration Atelier (Original Font Design Style)*/}
-          {/* ------------------------------------------------------------------ */}
-          <div
-            ref={step3TextRef}
-            className="absolute bottom-8 sm:bottom-12 md:bottom-16 left-0 right-0 z-40 px-[4vw] md:px-[6vw] grid gap-[3vw] md:grid-cols-2 items-end pointer-events-auto will-change-[transform,opacity]"
-          >
-            <div>
-              <p className="flex items-center gap-[0.6vw] text-[1.15vw] max-md:gap-[2vw] max-md:text-[13px] text-amber-300 font-mono uppercase tracking-wider font-bold drop-shadow-[0_2px_8px_rgba(0,0,0,0.85)]">
-                <span className="size-[0.7vw] rounded-full bg-amber-400 max-md:size-[7px] animate-pulse drop-shadow" />
-                <span>{steps[2].badge} · {steps[2].step}</span>
-              </p>
-              <h2 className="mt-[1.5vh] text-[2.6vw] font-serif font-black tracking-[-0.03em] max-md:text-[24px] text-white leading-[1.15] drop-shadow-[0_2px_12px_rgba(0,0,0,0.9)]">
-                {steps[2].heading}
-              </h2>
-            </div>
-            <div className="space-y-4">
-              <p className="text-[2.0vw] leading-[1.32] font-normal tracking-[-0.02em] max-md:text-[17px] text-white/95 font-serif drop-shadow-[0_2px_10px_rgba(0,0,0,0.85)] max-w-2xl">
-                {steps[2].lead}
-              </p>
-              <div className="flex items-center gap-3">
-                <button
-                  type="button"
-                  onClick={() => onNavigate && onNavigate('menu')}
-                  className="group inline-flex items-center gap-2 px-5 py-2.5 rounded-full bg-amber-400 hover:bg-amber-300 text-stone-950 font-bold text-xs uppercase tracking-wider shadow-lg shadow-amber-400/30 transition-all transform hover:-translate-y-0.5 active:translate-y-0 cursor-pointer"
-                >
-                  <span>{steps[2].ctaText}</span>
-                  <ArrowRight className="w-3.5 h-3.5 transition-transform group-hover:translate-x-1" />
-                </button>
-                <span className="text-xs font-mono text-amber-300/80 uppercase tracking-wider">
-                  {steps[2].subHighlight}
-                </span>
-              </div>
-            </div>
-          </div>
-
-          {/* ------------------------------------------------------------------ */}
-          {/* STEP 4 TEXT SECTION: Savory Patisserie (New 4th Section Added!)    */}
-          {/* ------------------------------------------------------------------ */}
-          <div
-            ref={step4TextRef}
-            className="absolute bottom-8 sm:bottom-12 md:bottom-16 left-0 right-0 z-40 px-[4vw] md:px-[6vw] grid gap-[3vw] md:grid-cols-2 items-end pointer-events-auto will-change-[transform,opacity]"
-          >
-            <div>
-              <p className="flex items-center gap-[0.6vw] text-[1.15vw] max-md:gap-[2vw] max-md:text-[13px] text-amber-300 font-mono uppercase tracking-wider font-bold drop-shadow-[0_2px_8px_rgba(0,0,0,0.85)]">
-                <span className="size-[0.7vw] rounded-full bg-amber-400 max-md:size-[7px] animate-pulse drop-shadow" />
-                <span>{steps[3].badge} · {steps[3].step}</span>
-              </p>
-              <h2 className="mt-[1.5vh] text-[2.6vw] font-serif font-black tracking-[-0.03em] max-md:text-[24px] text-white leading-[1.15] drop-shadow-[0_2px_12px_rgba(0,0,0,0.9)]">
-                {steps[3].heading}
-              </h2>
-            </div>
-            <div className="space-y-4">
-              <p className="text-[2.0vw] leading-[1.32] font-normal tracking-[-0.02em] max-md:text-[17px] text-white/95 font-serif drop-shadow-[0_2px_10px_rgba(0,0,0,0.85)] max-w-2xl">
-                {steps[3].lead}
-              </p>
-              <div className="flex items-center gap-3">
-                <button
-                  type="button"
-                  onClick={() => onNavigate && onNavigate('menu')}
-                  className="group inline-flex items-center gap-2 px-5 py-2.5 rounded-full bg-amber-400 hover:bg-amber-300 text-stone-950 font-bold text-xs uppercase tracking-wider shadow-lg shadow-amber-400/30 transition-all transform hover:-translate-y-0.5 active:translate-y-0 cursor-pointer"
-                >
-                  <span>{steps[3].ctaText}</span>
-                  <ArrowRight className="w-3.5 h-3.5 transition-transform group-hover:translate-x-1" />
-                </button>
-                <span className="text-xs font-mono text-amber-300/80 uppercase tracking-wider">
-                  {steps[3].subHighlight}
-                </span>
-              </div>
-            </div>
-          </div>
-
         </div>
+      </section>
+
+      {/* Intro Section: SplitText revealed on scroll */}
+      <section
+        ref={introSectionRef}
+        className="grid gap-[4vw] px-[4vw] md:grid-cols-2 md:px-[3vw] pt-8"
+        style={{ paddingBottom: SCROLL.gap }}
+      >
+        <div>
+          <p className="flex items-center gap-[0.6vw] text-[1.1vw] text-[#D25027] font-semibold tracking-wider uppercase max-md:gap-[2vw] max-md:text-[12px]">
+            <span className="size-[0.6vw] rounded-full bg-[#D25027] max-md:size-[7px]" />
+            <span ref={collectIntroText} className="block font-mono">
+              {intro.label}
+            </span>
+          </p>
+          <h2
+            ref={collectIntroText}
+            className="mt-[1.5vh] text-[2vw] font-serif font-bold tracking-[-0.02em] max-md:text-[22px] text-[#21100B] leading-[1.2]"
+          >
+            {intro.heading}
+          </h2>
+        </div>
+
+        <p
+          ref={collectIntroText}
+          className="text-[2.2vw] leading-[1.28] font-normal tracking-[-0.02em] max-md:text-[18px] text-[#21100B]/90 font-serif"
+        >
+          {intro.lead}
+        </p>
       </section>
     </div>
   );

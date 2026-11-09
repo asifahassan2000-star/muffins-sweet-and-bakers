@@ -490,8 +490,8 @@ export default function App() {
       </div>
 
       {/* ================= CLEAN EDITORIAL HEADER & SLIDE-OUT SIDEBAR ================= */}
-      {/* On homepage, Hero's header takes charge; on subpages, Header provides persistent navigation */}
-      {activeView !== 'home' && (
+      {/* On homepage and story page, their dedicated heroes manage navigation; on other pages Header provides persistent navigation */}
+      {activeView !== 'home' && activeView !== 'story' && (
         <Header
           activeView={activeView}
           onNavigate={handleNavigate}
